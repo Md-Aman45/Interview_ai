@@ -1,11 +1,17 @@
-import axios from 'axios'
+import { useContext } from "react";
+import { AuthContext } from "../auth.context";
+import { login, register, logout, getMe } from "../services/auth.api";
 
 
-const api = axios.create({
-    baseURL: "http://localhost:8080",
-    withCredentials: true
-})
+export const useAuth = () => {
+
+    const context = useContext(AuthContext)
+
+    const  { user, setUser, loading, setLoading } = context
 
 
+    const handleLogin = async ({ email, password }) => {
+        setLoading(true)
+    }
 
-// do tommororw
+}
