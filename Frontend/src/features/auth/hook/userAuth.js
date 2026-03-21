@@ -19,11 +19,4 @@ export const useAuth = () => {
 
 
 
-// do something...
-
-
-
-
-
-// hello world
-// do more...
+// nothing is bad or nothing is good...
