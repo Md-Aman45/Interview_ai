@@ -19,11 +19,6 @@ export const useAuth = () => {
 
 
 
-// nothing is bad or nothing is good...
-
-
-// one more day waiting for good days...
-
-
 
 // one day left may be today
+// one more day bcz today i'm tired but yeah i try my best to do work today
