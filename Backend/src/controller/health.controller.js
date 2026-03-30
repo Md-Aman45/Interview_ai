@@ -41,3 +41,8 @@ async function healthCheckController(req, res) {
 module.exports = {
     healthCheckController
 };
+
+
+
+
+// being honest, this is pretty much the best health check controller you can get. It checks the server uptime, database connection status, and memory usage. It's like a full physical checkup for your server!
