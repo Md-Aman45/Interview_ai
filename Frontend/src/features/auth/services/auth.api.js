@@ -63,5 +63,6 @@ export async function getMe() {
 
     } catch(err) {
         console.log("get-me error: ", err);
+        return null;
     }
 }

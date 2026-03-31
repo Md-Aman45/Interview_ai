@@ -8,7 +8,7 @@ import { useState } from "react";
 const Login = () => {
 
   const { loading, handleLogin } = useAuth();
-  // const navigate = useNavigate()
+  const navigate = useNavigate();
 
   
 
@@ -17,9 +17,10 @@ const Login = () => {
   
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    handleLogin({ email, password })
+    await handleLogin({ email, password })
+    navigate('/')
   }
 
 

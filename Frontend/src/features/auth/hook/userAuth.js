@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../auth.context";
 import { login, register, logout, getMe } from "../services/auth.api";
 
@@ -57,6 +57,35 @@ export const useAuth = () => {
             setLoading(false)
         }
     }
+
+
+
+    // getMe on app load...
+    useEffect(() => {
+
+        const getAndSetUser = async () => {
+            try {
+                const data = await getMe()
+    
+                if (data && data.email) {
+                    setUser(data);
+                } else {
+                    setUser(null);
+                }
+
+            } catch (err) {
+                console.log("getMe error:", err);
+                setUser(null);
+                
+            } finally {
+                setLoading(false)
+            }
+
+        }
+
+        getAndSetUser()
+
+    }, []);
 
 
 
