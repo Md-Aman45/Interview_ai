@@ -1,11 +1,2 @@
-Jwt Based Authentication
 
-
-Hello World!
-
-
-<!-- Do this in life do apptitide now after this -->
-We do work on genAI...
-
-<!-- Firstly work on logic so we are work on logic then think about something -->
-Bcz examination is too much close...
+If you want, I can make a **custom README for your project** (like your Node.js + MySQL app pr genAI project) 👍
