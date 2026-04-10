@@ -9,10 +9,11 @@ async function invokeGeminiAI(){
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: "Hello gemini ! Explain what is Interview ?"
-    })
+    });
 
-    console.log(response.text)
 }
+
+
 
 
 
