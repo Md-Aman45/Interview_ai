@@ -3,9 +3,7 @@ If you want, I can make a **custom README for your project** (like your Node.js 
 
 now today is a big problem i facee and it's complete this project in minimum 5 days how it's possible i don't know...
 
-
-
-Hlo...
-today a change to get joinning letter may be
-
-No it's fake may be...
+require('dotenv').config();
+const app = require('./src/app');
+const connectToDB = require('./src/config/database');
+const invokeGeminiAI = require('./src/services/ai.service');
