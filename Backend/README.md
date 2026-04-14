@@ -1,9 +1,40 @@
-
-If you want, I can make a **custom README for your project** (like your Node.js + MySQL app pr genAI project) 👍
-
-now today is a big problem i facee and it's complete this project in minimum 5 days how it's possible i don't know...
-
-require('dotenv').config();
-const app = require('./src/app');
-const connectToDB = require('./src/config/database');
-const invokeGeminiAI = require('./src/services/ai.service');
+/**
+ * - job description schema : type: String
+ * 
+ * - resume text : type: String
+ * 
+ * - Self description : type: String
+ * 
+ * - matchScore : Number
+ * 
+ * - Technical questions : 
+ *              [{
+ *                 question : "",
+ *                 intention : "",
+ *                 answer : "",
+ *              }]
+ * 
+ * - Behavioral questions : 
+ *              [{
+ *                 question : "",
+ *                 intention : "",
+ *                 answer : "",
+ *              }]
+ * 
+ * - Skill gaps : 
+ *              [{
+ *                 skill : "",
+ *                 severity : {
+ *                    type : String,
+ *                    enum : ["low", "medium", "high"]
+ *                 },
+ *              }]
+ * 
+ * - preparation plan : 
+ *              [{
+ *                day : Number,
+ *                focus : String,
+ *                tasks : [String]
+ *              }]
+ * 
+ */
