@@ -1,7 +1,8 @@
 require('dotenv').config();
 const app = require('./src/app');
 const connectToDB = require('./src/config/database');
-const invokeGeminiAI = require('./src/services/ai.service');
+const { getResume, getSelfDescription, getJobDescription } = require('./src/services/temp');
+const generateInterviewReport = require('./src/services/ai.service');
 
 
 // Database connection...
@@ -9,8 +10,9 @@ connectToDB();
 
 
 
-// Test Gemini AI...
-invokeGeminiAI("Explain Interview");
+// // Test Gemini AI...
+// invokeGeminiAI("Hello gemini ! Explain what is Interview ?");
+generateInterviewReport({ resume: getResume(), selfDescription: getSelfDescription(), jobDescription: getJobDescription() });
 
 
 

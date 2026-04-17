@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { de } = require('zod/v4/locales');
 
 
 /**
@@ -60,7 +61,19 @@ const technicalQuestionSchema = new mongoose.Schema({
     answer: {
         type: String,
         required: [ true, "Answer is required" ]
-    }
+    },
+
+    score: {
+        type: Number,
+        min: 0,
+        max: 10,
+        default: 0,
+    },
+
+    feedback: {
+        type: String,
+        default: "",
+    },
 }, {
     _id: false  
 })
@@ -82,7 +95,19 @@ const behavioralQuestionSchema = new mongoose.Schema({
     answer: {
         type: String,
         required: [ true, "Answer is required" ]
-    }
+    },
+
+    score: {
+        type: Number,
+        min: 0,
+        max: 10,
+        default: 0,
+    },
+
+    feedback: {
+        type: String,
+        default: "",
+    },
 }, {
     _id: false
 })
@@ -100,7 +125,12 @@ const skillGapSchema = new mongoose.Schema({
         type: String,
         enum: [ "low", "medium", "high" ],
         required: [ true, "Severity is required" ]
-    }
+    },
+
+    recommendation: {
+        type: String,
+        default: "",
+    },
 }, {
     _id: false
 })
@@ -150,6 +180,37 @@ const interviewReportSchema = new mongoose.Schema({
         max: 100,
     },
 
+
+    scoreBreakdown: {
+        technical: { type: Number, min: 0, max: 10 },
+        projects: { type: Number, min: 0, max: 10 },
+        problemSolving: { type: Number, min: 0, max: 10 },
+        communication: { type: Number, min: 0, max: 10 }
+    },
+
+    averageScore: {
+        type: Number,
+        min: 0,
+        max: 10
+    },
+
+    hiringRecommendation: {
+        type: String,
+        enum: ["Strong Hire", "Hire", "Consider", "Reject"],
+    },
+
+    confidence: {
+        type: Number,
+        min: 0,
+        max: 100
+    },
+
+
+    overallAnalysis: {
+        type: String
+    },
+
+
     technicalQuestions: [ technicalQuestionSchema ],
 
     behavioralQuestions: [ behavioralQuestionSchema ],
@@ -157,6 +218,19 @@ const interviewReportSchema = new mongoose.Schema({
     skillGaps: [ skillGapSchema ],
 
     preparationPlan: [ preparationPlanSchema ],
+
+
+    round: {
+        type: String,
+        enum: ["resume", "technical", "behavioral"],
+        default: "resume"
+    },
+
+    status: {
+        type: String,
+        enum: ["draft", "completed"],
+        default: "completed"
+    },
 
     user: {
         type: mongoose.Schema.Types.ObjectId,
