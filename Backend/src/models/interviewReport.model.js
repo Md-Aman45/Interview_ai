@@ -76,7 +76,7 @@ const technicalQuestionSchema = new mongoose.Schema({
     },
 }, {
     _id: false  
-})
+});
 
 
 
