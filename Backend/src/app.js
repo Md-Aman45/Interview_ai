@@ -1,6 +1,9 @@
 const express = require('express');
-const authRouter = require('./routes/auth.routes')
-const healthRouter = require('./routes/health.routes')
+const authRouter = require('./routes/auth.routes');
+const healthRouter = require('./routes/health.routes');
+const interviewRouter = require('./routes/interview.routes');
+const mockRouter = require('./routes/mock.routes');
+const analyticsRouter = require('./routes/analytics.routes');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
@@ -17,7 +20,10 @@ app.use(cors({
 
 // routes...
 app.use("/api/auth", authRouter);
-app.use("/api/v1/", healthRouter)
+app.use("/api/v1/", healthRouter);
+app.use("/api/interview", interviewRouter);
+app.use("/api/mock", mockRouter);
+app.use("/api/analytics", analyticsRouter);
 
 
 
