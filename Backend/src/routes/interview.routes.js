@@ -7,6 +7,7 @@ const {
     getAllReportsController,
     getReportByIdController,
     deleteReportController,
+    generateResumePdfController
 } = require('../controller/interview.controller');
 
 
@@ -20,6 +21,9 @@ interviewRouter.get('/reports', authUser, getAllReportsController);
 interviewRouter.get('/reports/:id', authUser, getReportByIdController);
 
 interviewRouter.delete('/reports/:id', authUser, deleteReportController);
+
+
+interviewRouter.post('/resume/:reportId', authUser, checkLimit("resume"), generateResumePdfController);
 
 
 

@@ -202,4 +202,137 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 
 
-module.exports = generateInterviewReport;
+
+
+
+
+async function generateResumeContent({ resume, jobDescription, selfDescription }) {
+
+    const resumeSchema = {
+        type: "object",
+        properties: {
+            name:           { type: "string" },
+            email:          { type: "string" },
+            phone:          { type: "string" },
+            location:       { type: "string" },
+            summary:        { type: "string", description: "3-4 sentence professional summary tailored to the job" },
+            skills:         { type: "array", items: { type: "string" }, description: "Top 10-12 relevant skills for this job" },
+            experience: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        role:        { type: "string" },
+                        company:     { type: "string" },
+                        duration:    { type: "string" },
+                        bullets:     { type: "array", items: { type: "string" }, description: "3-4 achievement bullets" }
+                    },
+                    required: ["role", "company", "duration", "bullets"]
+                }
+            },
+            projects: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        name:    { type: "string" },
+                        stack:   { type: "string" },
+                        bullets: { type: "array", items: { type: "string" }, description: "2-3 impact bullets" }
+                    },
+                    required: ["name", "stack", "bullets"]
+                }
+            },
+            education: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        degree:  { type: "string" },
+                        school:  { type: "string" },
+                        year:    { type: "string" },
+                        grade:   { type: "string" }
+                    },
+                    required: ["degree", "school", "year"]
+                }
+            }
+        },
+        required: ["name", "email", "summary", "skills", "projects", "education"]
+    };
+
+
+
+
+
+    const prompt = `
+                    You are an expert resume writer and ATS optimization specialist.
+
+                    Rewrite this candidate's resume to be perfectly tailored for the job description below.
+
+                    ORIGINAL RESUME:
+                    ${resume}
+
+                    SELF DESCRIPTION:
+                    ${selfDescription}
+
+                    JOB DESCRIPTION:
+                    ${jobDescription}
+
+                    RULES:
+                    - Make the summary directly address the job requirements
+                    - Only include skills relevant to this job
+                    - Rewrite project bullets to highlight impact and relevance to this role
+                    - Keep all information honest — do not invent experience
+                    - Make every bullet start with a strong action verb
+                    - Optimize for ATS — use keywords from the job description naturally
+                    - Keep it concise — quality over quantity
+`;
+
+
+    for (const model of MODELS) {
+        try {
+            const response = await ai.models.generateContent({
+                model,
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: resumeSchema,
+                    temperature: 0.3,
+                    maxOutputTokens: 8000
+                }
+            });
+
+            
+            let result;
+
+            try {
+                result = JSON.parse(response.text);
+
+            } catch (parseError) {
+
+                console.log("❌ Raw response that failed:", response.text.substring(0, 500));
+                throw new Error("AI returned incomplete response. Please try again.");
+            }
+
+
+            console.log(`✅ Resume generated with model: ${model}`);
+            console.log(result);
+            return result;
+
+        } catch (error) {
+            const shouldTryNext = error.status === 503 || error.status === 429 || error.status === 404;
+            if (shouldTryNext) {
+                console.log(`⚠️ ${model} failed (${error.status}), trying next...`);
+                continue;
+            }
+            throw error;
+        }
+    }
+
+    throw new Error("All AI models unavailable. Please try again in a minute.");
+}
+
+
+
+
+
+module.exports = { generateInterviewReport, generateResumeContent };

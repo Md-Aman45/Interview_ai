@@ -20,8 +20,8 @@ const usageLimitSchema = new mongoose.Schema({
 
     resetAt: {
         type: Date,
-        default: () => {
-            const row = new Date();
+        default: function() {
+            const now = new Date();
             return new Date(now.getFullYear(), now.getMonth() + 1, 1);
         }
     }

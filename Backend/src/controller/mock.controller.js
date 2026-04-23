@@ -9,7 +9,7 @@ async function startMockSessionController(req, res) {
 
         const report = await interviewReportModel.findOne({
             _id: reportId,
-            user: req.user._id
+            user: req.user.id
         });
 
         if (!report) {
@@ -28,7 +28,7 @@ async function startMockSessionController(req, res) {
 
 
         const session = await mockSessionModel.create({
-            user: req.user._id,
+            user: req.user.id,
             report: reportId,
             jobTitle: report.title,
             answers: [],
@@ -75,7 +75,7 @@ async function submitAnswerController(req, res) {
 
         const session = await mockSessionModel.findOne({
             _id: sessionId,
-            user: req.user._id
+            user: req.user.id
         });
 
 
@@ -135,7 +135,8 @@ async function submitAnswerController(req, res) {
         session.answers.push({
             question,
             userAnswer,
-            score: evaluation.feedback,
+            score: evaluation.score,
+            feedback: evaluation.feedback,
             idealAnswer: evaluation.idealAnswer,
             nextQuestion: evaluation.nextQuestion
         });
@@ -173,7 +174,7 @@ async function endMockSessionController(req, res) {
 
         const session = await mockSessionModel.findOne({
             _id: sessionId,
-            user: req.user._id
+            user: req.user.id
         });
 
         
@@ -227,7 +228,7 @@ async function endMockSessionController(req, res) {
 async function getAllSessionsController(req, res) {
     try {
         const sessions = await mockSessionModel
-            .find({ user: req.user._id })
+            .find({ user: req.user.id })
             .sort({ createdAt: -1 })
             .select("jobTitle averageScore totalQuestions status startedAt createdAt");
 

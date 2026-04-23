@@ -5,7 +5,7 @@ const usageLimitModel = require('../models/usageLimit.model');
 async function getAnalyticsSummaryController(req, res) {
     try {
         const sessions = await mockSessionModel.find({
-            user: req.user._id,
+            user: req.user.id,
             status: "completed"
         }).sort({ createdAt: 1 });
 
@@ -76,7 +76,7 @@ async function getAnalyticsSummaryController(req, res) {
 async function getUsageController(req, res) {
     try {
         const usageData = await usageLimitModel.find({
-            user: req.user._id
+            user: req.user.id
         });
 
         const LIMITS = { report: 20, resume: 15, mock: 10 };

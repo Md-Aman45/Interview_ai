@@ -14,13 +14,13 @@ function checkLimit(type) {
             const now = new Date();
 
             let usage = await usageLimitModel.findOne({
-                user: req.user._id,
+                user: req.user.id,
                 type
             });
 
             if (!usage) {
                 usage = await usageLimitModel.create({
-                    user: req.user._id,
+                    user: req.user.id,
                     type,
                     count: 0
                 });
