@@ -263,29 +263,36 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
 
 
 
-    const prompt = `
-                    You are an expert resume writer and ATS optimization specialist.
 
-                    Rewrite this candidate's resume to be perfectly tailored for the job description below.
 
-                    ORIGINAL RESUME:
-                    ${resume}
 
-                    SELF DESCRIPTION:
-                    ${selfDescription}
+        const prompt = `
+                        You are an expert resume writer and ATS optimization specialist with 10 years of experience.
 
-                    JOB DESCRIPTION:
-                    ${jobDescription}
+                        Rewrite this candidate's resume to be perfectly tailored for the job description below.
 
-                    RULES:
-                    - Make the summary directly address the job requirements
-                    - Only include skills relevant to this job
-                    - Rewrite project bullets to highlight impact and relevance to this role
-                    - Keep all information honest — do not invent experience
-                    - Make every bullet start with a strong action verb
-                    - Optimize for ATS — use keywords from the job description naturally
-                    - Keep it concise — quality over quantity
+                        ORIGINAL RESUME:
+                        ${resume}
+
+                        SELF DESCRIPTION:
+                        ${selfDescription}
+
+                        JOB DESCRIPTION:
+                        ${jobDescription}
+
+                        STRICT RULES:
+                        - summary: 3-4 sentences, mention the exact job title, highlight most relevant skills
+                        - skills: only skills mentioned in job description or directly relevant, maximum 12
+                        - projects: rewrite bullets to show impact. Each bullet must start with action verb.
+                        GOOD bullet: "Built real-time video calling system using WebRTC handling 50+ concurrent users"
+                        BAD bullet: "Worked on video calling project"
+                        - education: include degree, school, year, and grade if available
+                        - Every bullet must be specific and measurable where possible
+                        - Use exact keywords from the job description for ATS optimization
+                        - Do not invent any experience or skills not in the original resume
 `;
+
+
 
 
     for (const model of MODELS) {
