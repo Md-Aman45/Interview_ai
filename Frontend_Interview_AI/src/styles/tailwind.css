@@ -1,0 +1,16 @@
+@import 'tailwindcss' source(none);
+@source '../**/*.{js,jsx}';
+
+@import 'tw-animate-css';
+
+@keyframes vibrate {
+    0%,100% { transform: translate(0,0) rotate(0deg); }
+    20%      { transform: translate(-2px,1px) rotate(-0.5deg); }
+    40%      { transform: translate(2px,-1px) rotate(0.5deg); }
+    60%      { transform: translate(-1px,2px) rotate(-0.3deg); }
+    80%      { transform: translate(1px,-2px) rotate(0.3deg); }
+}
+
+@utility animate-vibrate {
+    animation: vibrate 0.12s infinite;
+}

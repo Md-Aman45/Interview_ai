@@ -8,10 +8,6 @@ connectToDB();
 
 
 
-// // Test Gemini AI...
-// invokeGeminiAI("Hello gemini ! Explain what is Interview ?");
-// generateInterviewReport({ resume: getResume(), selfDescription: getSelfDescription(), jobDescription: getJobDescription() });
-
 
 
 
