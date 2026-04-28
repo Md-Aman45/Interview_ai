@@ -215,6 +215,11 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
             email:          { type: "string" },
             phone:          { type: "string" },
             location:       { type: "string" },
+            linkedin:       { type: "string" },
+            github:         { type: "string" },
+            portfolio:      { type: "string" },
+            leetcode:       { type: "string" },
+            gfg:            { type: "string" },
             summary:        { type: "string", description: "3-4 sentence professional summary tailored to the job" },
             skills:         { type: "array", items: { type: "string" }, description: "Top 10-12 relevant skills for this job" },
             experience: {
@@ -290,6 +295,18 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                         - Every bullet must be specific and measurable where possible
                         - Use exact keywords from the job description for ATS optimization
                         - Do not invent any experience or skills not in the original resume
+
+
+                        IMPORTANT: Extract these from resume if present:
+                            - linkedin: LinkedIn profile URL
+                            - github: GitHub profile URL  
+                            - portfolio: Portfolio website URL
+                            - leetcode: Leetcode website URL
+                            - gfg: GFG website URL
+                            - phone: phone number
+                            - location: city, country
+
+                            If links are not in resume text, leave them as empty string.
 `;
 
 

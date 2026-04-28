@@ -84,6 +84,8 @@ async function getAllReportsController(req, res) {
 
 
 
+
+
 async function getReportByIdController(req, res) {
     try {
         const report = await interviewReportModel.findOne({
@@ -173,6 +175,16 @@ async function generateResumePdfController(req, res) {
             jobDescription: report.jobDescription,
             selfDescription: report.selfDescription
         });
+
+
+        const contactParts = [
+            resumeData.location,
+            resumeData.phone,
+            resumeData.email ? `<a href="mailto:${resumeData.email}" style="color:#4f46e5;text-decoration:none">${resumeData.email}</a>` : null,
+            resumeData.linkedin ? `<a href="${resumeData.linkedin}" style="color:#4f46e5;text-decoration:none">LinkedIn</a>` : null,
+            resumeData.github ? `<a href="${resumeData.github}" style="color:#4f46e5;text-decoration:none">GitHub</a>` : null,
+            resumeData.portfolio ? `<a href="${resumeData.portfolio}" style="color:#4f46e5;text-decoration:none">Portfolio</a>` : null,
+        ].filter(Boolean).join('  •  ');
 
         // Build HTML
         const skillsHTML = resumeData.skills

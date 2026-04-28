@@ -560,6 +560,10 @@ function LiveSession({ session, onEnd }) {
     const silenceTimerRef = useRef(null);
     const synthRef = useRef(window.speechSynthesis);
     const historyEndRef = useRef(null);
+    const isListeningRef = useRef(false);
+    const [aiSpeaking, setAiSpeaking] = useState(false);
+const [userSpeaking, setUserSpeaking] = useState(false);
+    
 
     // Speak text
     const speak = (text, onDone) => {
@@ -645,7 +649,31 @@ function LiveSession({ session, onEnd }) {
         };
 
         rec.onerror = () => setIsListening(false);
-        rec.onend = () => setIsListening(false);
+
+        // const isListeningRef = useRef(false);
+
+        // Update ref whenever isListening changes
+        const toggleMic = () => {
+            if (isListening) {
+                isListeningRef.current = false;
+                recognitionRef.current?.stop();
+                setIsListening(false);
+            } else {
+                isListeningRef.current = true;
+                setTranscript('');
+                recognitionRef.current?.start();
+                setIsListening(true);
+            }
+        };
+
+        rec.onend = () => {
+            if (isListeningRef.current) {
+                try { rec.start(); } catch {}
+            } 
+            else {
+                setIsListening(false);
+            }
+        }
         recognitionRef.current = rec;
     }, [currentQuestion]);
 
@@ -700,9 +728,11 @@ function LiveSession({ session, onEnd }) {
                 return;
             }
 
-            speak(`Score: ${res.score} out of 10. ${res.feedback}`, () => {
-                setTimeout(() => speak(res.nextQuestion), 500);
-            });
+            // speak(`Score: ${res.score} out of 10. ${res.feedback}`, () => {
+            //     setTimeout(() => speak(res.nextQuestion), 500);
+            // });
+
+            speak(res.nextQuestion);
 
         } catch (err) {
             if (err?.response?.data?.timeUp) { handleEnd(); return; }
@@ -772,7 +802,44 @@ function LiveSession({ session, onEnd }) {
 
     // ── LIVE INTERVIEW SCREEN ──
     return (
-        <div className="flex gap-6 h-[calc(100vh-120px)]">
+        // <div className="flex gap-6 h-[calc(100vh-120px)]">
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 100,
+                background: 'var(--background)',
+                display: 'flex',
+                gap: 0,
+                overflow: 'hidden',
+            }}>
+
+
+
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+
+    {/* 🤖 AI AVATAR */}
+    <div className={`ai-avatar ${aiSpeaking ? "speaking" : ""}`}>
+        <img src="/ai-avatar.png" alt="AI" />
+    </div>
+
+    {/* 🔊 SOUND WAVE */}
+    {aiSpeaking && (
+        <div className="wave">
+            <span></span><span></span><span></span>
+        </div>
+    )}
+
+    {/* 🧠 QUESTION TEXT */}
+    <div style={{ marginTop: 20, fontSize: 18 }}>
+        {currentQuestion}
+    </div>
+
+</div>
+
+{/* 🧑 USER AVATAR (BOTTOM RIGHT) */}
+<div className={`user-avatar ${userSpeaking ? "speaking" : ""}`}>
+    <img src="/user-avatar.png" alt="User" />
+</div>
 
             {/* LEFT — conversation history */}
             <div className="w-80 flex-shrink-0 rounded-[2rem] border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 flex flex-col overflow-hidden">
@@ -965,16 +1032,40 @@ export function MockInterview() {
 
     if (loading) return <LoadingSpinner fullScreen label="Loading mock interview" />;
 
+    if (phase === 'session' && activeSession) {
+        return (
+            <LiveSession session={activeSession} onEnd={handleEnd} />
+        );
+    }
+
+
+    // return (
+    //     <Layout title="Mock interview" eyebrow="Practice workflow">
+    //         {phase === 'instructions' && (
+    //             <InstructionsScreen onConfirm={() => setPhase('picker')} />
+    //         )}
+    //         {phase === 'picker' && (
+    //             <ReportPicker reports={reports} onStart={handleStart} submitting={submitting} />
+    //         )}
+    //         {phase === 'session' && activeSession && (
+    //             <LiveSession session={activeSession} onEnd={handleEnd} />
+    //         )}
+    //     </Layout>
+    // );
+
+
     return (
         <Layout title="Mock interview" eyebrow="Practice workflow">
             {phase === 'instructions' && (
                 <InstructionsScreen onConfirm={() => setPhase('picker')} />
             )}
+
             {phase === 'picker' && (
-                <ReportPicker reports={reports} onStart={handleStart} submitting={submitting} />
-            )}
-            {phase === 'session' && activeSession && (
-                <LiveSession session={activeSession} onEnd={handleEnd} />
+                <ReportPicker
+                    reports={reports}
+                    onStart={handleStart}
+                    submitting={submitting}
+                />
             )}
         </Layout>
     );
