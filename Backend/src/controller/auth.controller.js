@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const tokenBlacklistModel = require('../models/blacklist.model');
-const { sendPasswordResetEmail } = require('../services/email.service');
+const { sendPasswordResetEmail, sendOtpEmail } = require('../services/email.service');
+
+
 
 /**
  * @name Register User Controller
@@ -33,34 +35,51 @@ async function registerUserController(req, res) {
     // Hash the password...
     const hash = await bcrypt.hash(password, 10);
 
+
+    // generate OTP (6 digit)...
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     // Create thr user...
     const user = new userModel({
         username,
         email,
-        password: hash
+        password: hash,
+        otp,
+        otpExpires: Date.now() + 5 * 60 * 1000,
+        isVerified: false
     });
 
 
     await user.save();
 
 
+    await sendOtpEmail(email, otp);
 
-    const token = jwt.sign(
-        { id: user._id, username: user.username },
-        process.env.JWT_SECRET,
-        { expiresIn: "5d" }
-    )
+    console.log(otp);
 
-    res.cookie("token", token);
 
-    res.status(201).json({
-        message: "User registered successfully",
-        user: {
-            id: user._id,
-            username: user.username,
-            email: user.email
-        }
+    return res.status(201).json({
+        message: "OTP sent to your email. Please verify your account."
     });
+
+
+
+    // const token = jwt.sign(
+    //     { id: user._id, username: user.username },
+    //     process.env.JWT_SECRET,
+    //     { expiresIn: "5d" }
+    // )
+
+    // res.cookie("token", token);
+
+    // res.status(201).json({
+    //     message: "User registered successfully",
+    //     user: {
+    //         id: user._id,
+    //         username: user.username,
+    //         email: user.email
+    //     }
+    // });
     console.log("Successfull register");
 
 }
@@ -81,6 +100,13 @@ async function loginUserController(req, res) {
     // Basic validation...
     if (!user) {
         return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+
+    if (!user.isVerified) {
+        return res.status(400).json({
+            message: "Please verify your email first"
+        });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -262,6 +288,48 @@ async function changePasswordController(req, res) {
 
 
 
+
+
+
+// verify otp...
+async function verifyOtpController(req, res) {
+    const { email, otp } = req.body;
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+        return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.isVerified) {
+        return res.status(400).json({ message: "Already verified" });
+    }
+
+    if (user.otp !== otp || user.otpExpires < Date.now()) {
+        return res.status(400).json({
+            message: "Invalid or expired OTP"
+        });
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+
+    await user.save();
+
+    return res.status(200).json({
+        message: "Email verified successfully"
+    });
+}
+
+
+
+
+
+
+
+
+
 module.exports = {
     registerUserController,
     loginUserController,
@@ -269,5 +337,6 @@ module.exports = {
     getMeController,
     forgotPasswordController,
     resetPasswordController,
-    changePasswordController
+    changePasswordController,
+    verifyOtpController
 }

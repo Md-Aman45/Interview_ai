@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUserController, loginUserController, logoutUserController, getMeController, forgotPasswordController, resetPasswordController, changePasswordController } = require('../controller/auth.controller');
+const { registerUserController, loginUserController, logoutUserController, getMeController, forgotPasswordController, resetPasswordController, changePasswordController, verifyOtpController } = require('../controller/auth.controller');
 const { authUser } = require('../middlewares/auth.middleware');
 
 const authRouter = express.Router();
@@ -55,6 +55,12 @@ authRouter.post("/reset-password", resetPasswordController);
 
 // change-password...
 authRouter.post("/change-password", authUser, changePasswordController);
+
+
+
+
+// verify otp...
+authRouter.post("/verify-otp", verifyOtpController);
 
 
 

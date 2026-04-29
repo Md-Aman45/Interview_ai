@@ -37,4 +37,34 @@ async function sendPasswordResetEmail(email, resetToken) {
 
 
 
-module.exports = { sendPasswordResetEmail };
+
+
+
+// OTP Email...
+async function sendOtpEmail(email, otp) {
+    await transporter.sendMail({
+        from: `"InterviewAI <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Verify your account - InterviewAI',
+        html: `
+            <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px">
+                <div style="font-size:22px;font-weight:700;margin-bottom:10px">Verify your email</div>
+                <p style="color:#64748b;margin-bottom:20px">
+                    Use the OTP below to verify your account:
+                </p>
+                <div style="font-size:28px;font-weight:700;letter-spacing:4px;margin:20px 0">
+                    ${otp}
+                </div>
+                <p style="color:#94a3b8;font-size:12px">
+                    This OTP will expire in 5 minutes.
+                </p>
+            </div>
+        `
+    });
+}
+
+
+
+
+
+module.exports = { sendPasswordResetEmail, sendOtpEmail };

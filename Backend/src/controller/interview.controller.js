@@ -503,7 +503,11 @@ async function generateResumePdfController(req, res) {
                 ${resumeData.projects.map(proj => `
                 <div class="exp-item">
                     <div class="exp-header">
-                        <span class="exp-role">${proj.name}${proj.link ? ` | <a href="${proj.link}" class="proj-link">${proj.link}</a>` : ''}</span>
+                        <span class="exp-role">${proj.name}${proj.link ? (() => {
+                            const url = proj.link.startsWith('http') ? proj.link : `https://${proj.link}`;
+                            return ` | <a href="${url}" class="proj-link">${proj.link}</a>`;
+                            })() : ''}
+                        </span>
                         ${proj.date ? `<span class="exp-date">${proj.date}</span>` : ''}
                     </div>
                     <div class="exp-sub">${proj.stack}</div>
