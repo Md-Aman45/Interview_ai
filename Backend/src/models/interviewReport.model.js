@@ -240,7 +240,16 @@ const interviewReportSchema = new mongoose.Schema({
     title: {
         type: String,
         required: [ true, "Job title is required" ]
-    }
+    },
+
+    links: {
+        linkedin:   { type: String, default: '' },
+        github:     { type: String, default: '' },
+        portfolio:  { type: String, default: '' },
+        leetcode:   { type: String, default: '' },
+        gfg:        { type: String, default: '' },
+        extraLinks: [{ label: String, url: String }]
+    },
 
 }, {
     timestamps: true

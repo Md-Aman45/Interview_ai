@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUserController, loginUserController, logoutUserController, getMeController } = require('../controller/auth.controller');
+const { registerUserController, loginUserController, logoutUserController, getMeController, forgotPasswordController, resetPasswordController, changePasswordController } = require('../controller/auth.controller');
 const { authUser } = require('../middlewares/auth.middleware');
 
 const authRouter = express.Router();
@@ -38,5 +38,24 @@ authRouter.get("/logout", logoutUserController);
  * @access private
  */
 authRouter.get("/get-me", authUser, getMeController);
+
+
+
+
+
+// forgot-password...
+authRouter.post("/forgot-password", forgotPasswordController);
+
+
+
+// reset-password...
+authRouter.post("/reset-password", resetPasswordController);
+
+
+
+// change-password...
+authRouter.post("/change-password", authUser, changePasswordController);
+
+
 
 module.exports = authRouter;

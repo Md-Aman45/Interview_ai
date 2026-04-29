@@ -206,111 +206,337 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 
 
+// async function generateResumeContent({ resume, jobDescription, selfDescription }) {
+
+//     const resumeSchema = {
+//         type: "object",
+//         properties: {
+//             name:           { type: "string" },
+//             email:          { type: "string" },
+//             phone:          { type: "string" },
+//             location:       { type: "string" },
+//             linkedin:       { type: "string" },
+//             github:         { type: "string" },
+//             portfolio:      { type: "string" },
+//             leetcode:       { type: "string" },
+//             gfg:            { type: "string" },
+//             summary:        { type: "string", description: "3-4 sentence professional summary tailored to the job" },
+//             skills:         { type: "array", items: { type: "string" }, description: "Top 10-12 relevant skills for this job" },
+//             experience: {
+//                 type: "array",
+//                 items: {
+//                     type: "object",
+//                     properties: {
+//                         role:        { type: "string" },
+//                         company:     { type: "string" },
+//                         duration:    { type: "string" },
+//                         bullets:     { type: "array", items: { type: "string" }, description: "3-4 achievement bullets" }
+//                     },
+//                     required: ["role", "company", "duration", "bullets"]
+//                 }
+//             },
+//             projects: {
+//                 type: "array",
+//                 items: {
+//                     type: "object",
+//                     properties: {
+//                         name:    { type: "string" },
+//                         stack:   { type: "string" },
+//                         bullets: { type: "array", items: { type: "string" }, description: "2-3 impact bullets" }
+//                     },
+//                     required: ["name", "stack", "bullets"]
+//                 }
+//             },
+//             education: {
+//                 type: "array",
+//                 items: {
+//                     type: "object",
+//                     properties: {
+//                         degree:  { type: "string" },
+//                         school:  { type: "string" },
+//                         year:    { type: "string" },
+//                         grade:   { type: "string" }
+//                     },
+//                     required: ["degree", "school", "year"]
+//                 }
+//             }
+//         },
+//         required: ["name", "email", "summary", "skills", "projects", "education"]
+//     };
+
+
+
+
+
+
+
+
+//         const prompt = `
+//                         You are an expert resume writer and ATS optimization specialist with 10 years of experience.
+
+//                         Rewrite this candidate's resume to be perfectly tailored for the job description below.
+
+//                         ORIGINAL RESUME:
+//                         ${resume}
+
+//                         SELF DESCRIPTION:
+//                         ${selfDescription}
+
+//                         JOB DESCRIPTION:
+//                         ${jobDescription}
+
+//                         STRICT RULES:
+//                         - summary: 3-4 sentences, mention the exact job title, highlight most relevant skills
+//                         - skills: only skills mentioned in job description or directly relevant, maximum 12
+//                         - projects: rewrite bullets to show impact. Each bullet must start with action verb.
+//                         GOOD bullet: "Built real-time video calling system using WebRTC handling 50+ concurrent users"
+//                         BAD bullet: "Worked on video calling project"
+//                         - education: include degree, school, year, and grade if available
+//                         - Every bullet must be specific and measurable where possible
+//                         - Use exact keywords from the job description for ATS optimization
+//                         - Do not invent any experience or skills not in the original resume
+
+
+//                         IMPORTANT: Extract these from resume if present:
+//                             - linkedin: LinkedIn profile URL
+//                             - github: GitHub profile URL  
+//                             - portfolio: Portfolio website URL
+//                             - leetcode: Leetcode website URL
+//                             - gfg: GFG website URL
+//                             - phone: phone number
+//                             - location: city, country
+
+//                             If links are not in resume text, leave them as empty string.
+// `;
+
+
+
+
+//     for (const model of MODELS) {
+//         try {
+//             const response = await ai.models.generateContent({
+//                 model,
+//                 contents: prompt,
+//                 config: {
+//                     responseMimeType: "application/json",
+//                     responseSchema: resumeSchema,
+//                     temperature: 0.3,
+//                     maxOutputTokens: 8000
+//                 }
+//             });
+
+            
+//             let result;
+
+//             try {
+//                 result = JSON.parse(response.text);
+
+//             } catch (parseError) {
+
+//                 console.log("❌ Raw response that failed:", response.text.substring(0, 500));
+//                 throw new Error("AI returned incomplete response. Please try again.");
+//             }
+
+
+//             console.log(`✅ Resume generated with model: ${model}`);
+//             console.log(result);
+//             return result;
+
+//         } catch (error) {
+//             const shouldTryNext = error.status === 503 || error.status === 429 || error.status === 404;
+//             if (shouldTryNext) {
+//                 console.log(`⚠️ ${model} failed (${error.status}), trying next...`);
+//                 continue;
+//             }
+//             throw error;
+//         }
+//     }
+
+//     throw new Error("All AI models unavailable. Please try again in a minute.");
+// }
+
+
+
+
+
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────
+// PASTE THIS ENTIRE FUNCTION into ai.service.js
+// Replace your existing generateResumeContent function
+// ─────────────────────────────────────────────────────────────
+
 async function generateResumeContent({ resume, jobDescription, selfDescription }) {
 
     const resumeSchema = {
         type: "object",
         properties: {
-            name:           { type: "string" },
-            email:          { type: "string" },
-            phone:          { type: "string" },
-            location:       { type: "string" },
-            linkedin:       { type: "string" },
-            github:         { type: "string" },
-            portfolio:      { type: "string" },
-            leetcode:       { type: "string" },
-            gfg:            { type: "string" },
-            summary:        { type: "string", description: "3-4 sentence professional summary tailored to the job" },
-            skills:         { type: "array", items: { type: "string" }, description: "Top 10-12 relevant skills for this job" },
+            name:      { type: "string" },
+            email:     { type: "string" },
+            phone:     { type: "string" },
+            location:  { type: "string" },
+            linkedin:  { type: "string" },
+            github:    { type: "string" },
+            portfolio: { type: "string" },
+            leetcode:  { type: "string" },
+            gfg:       { type: "string" },
+            roleTitle: { type: "string" },
+
+            summary: {
+                type: "string",
+                description: "3-4 sentences tailored to the job. Mention job title, top skills, and experience level."
+            },
+
+            // Structured skill categories matching CV style
+            skillCategories: {
+                type: "array",
+                description: "Skill categories exactly like: Languages, Backend & APIs, Frontend, Databases, Cloud & DevOps, AI/GenAI, Core CS",
+                items: {
+                    type: "object",
+                    properties: {
+                        category: { type: "string" },
+                        skills:   { type: "string", description: "Comma separated skills for this category" }
+                    },
+                    required: ["category", "skills"]
+                }
+            },
+
+            certifications: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        name:   { type: "string" },
+                        date:   { type: "string" },
+                        issuer: { type: "string" },
+                        link:   { type: "string" }
+                    },
+                    required: ["name"]
+                }
+            },
+
             experience: {
                 type: "array",
                 items: {
                     type: "object",
                     properties: {
-                        role:        { type: "string" },
-                        company:     { type: "string" },
-                        duration:    { type: "string" },
-                        bullets:     { type: "array", items: { type: "string" }, description: "3-4 achievement bullets" }
+                        role:     { type: "string" },
+                        company:  { type: "string" },
+                        duration: { type: "string" },
+                        stack:    { type: "string" },
+                        bullets:  {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "3-5 achievement bullets. Start each with action verb. Be specific and measurable."
+                        }
                     },
                     required: ["role", "company", "duration", "bullets"]
                 }
             },
+
             projects: {
                 type: "array",
                 items: {
                     type: "object",
                     properties: {
-                        name:    { type: "string" },
+                        name:    { type: "string", description: "Project name with role e.g. 'Interview AI — GenAI Platform | Full Stack Developer'" },
+                        link:    { type: "string", description: "GitHub or live URL if present in resume" },
+                        date:    { type: "string" },
                         stack:   { type: "string" },
-                        bullets: { type: "array", items: { type: "string" }, description: "2-3 impact bullets" }
+                        bullets: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "2-3 impact bullets. Start with action verb. Be specific."
+                        }
                     },
                     required: ["name", "stack", "bullets"]
                 }
             },
+
             education: {
                 type: "array",
                 items: {
                     type: "object",
                     properties: {
-                        degree:  { type: "string" },
-                        school:  { type: "string" },
-                        year:    { type: "string" },
-                        grade:   { type: "string" }
+                        degree: { type: "string" },
+                        school: { type: "string" },
+                        year:   { type: "string" },
+                        grade:  { type: "string" }
                     },
                     required: ["degree", "school", "year"]
                 }
+            },
+
+            additional: {
+                type: "string",
+                description: "One line with Languages and Interests. e.g. Languages: English (Professional), Hindi (Native) | Interests: backend, GenAI, competitive programming"
             }
         },
-        required: ["name", "email", "summary", "skills", "projects", "education"]
+        required: ["name", "email", "summary", "skillCategories", "projects", "education"]
     };
 
+    const prompt = `
+You are an expert resume writer and ATS optimization specialist with 10 years of experience.
 
+Rewrite this candidate's resume to be perfectly tailored for the job description below.
+Keep all information honest — do not invent anything not in the original resume.
 
+ORIGINAL RESUME:
+${resume}
 
+SELF DESCRIPTION:
+${selfDescription}
 
+JOB DESCRIPTION:
+${jobDescription}
 
+STRICT RULES:
 
+name: Full name exactly as in resume
+roleTitle: Their main role title e.g. "Backend & Full Stack Developer"
 
-        const prompt = `
-                        You are an expert resume writer and ATS optimization specialist with 10 years of experience.
+summary: 3-4 sentences. Mention the exact job title from JD. Highlight most relevant skills. Include graduation year/SGPA if present.
 
-                        Rewrite this candidate's resume to be perfectly tailored for the job description below.
+skillCategories: Extract from resume into these exact categories if applicable:
+    - Languages
+    - Backend & APIs
+    - Frontend
+    - Databases
+    - Architecture
+    - Cloud & DevOps
+    - AI / GenAI
+    - Core CS
+Only include categories that have matching skills in the resume.
 
-                        ORIGINAL RESUME:
-                        ${resume}
+certifications: Extract ALL certifications from resume. Include name, date, issuer, and any certificate links.
 
-                        SELF DESCRIPTION:
-                        ${selfDescription}
+experience: Rewrite bullets to be specific and measurable. Start every bullet with an action verb.
+    GOOD: "Built production REST APIs serving 500+ users with JWT authentication"
+    BAD: "Worked on backend APIs"
 
-                        JOB DESCRIPTION:
-                        ${jobDescription}
+projects: 
+    - Keep project names exactly as in resume
+    - Extract GitHub/live links from resume if present
+    - Rewrite bullets to highlight impact relevant to the job description
+    - Include tech stack exactly
 
-                        STRICT RULES:
-                        - summary: 3-4 sentences, mention the exact job title, highlight most relevant skills
-                        - skills: only skills mentioned in job description or directly relevant, maximum 12
-                        - projects: rewrite bullets to show impact. Each bullet must start with action verb.
-                        GOOD bullet: "Built real-time video calling system using WebRTC handling 50+ concurrent users"
-                        BAD bullet: "Worked on video calling project"
-                        - education: include degree, school, year, and grade if available
-                        - Every bullet must be specific and measurable where possible
-                        - Use exact keywords from the job description for ATS optimization
-                        - Do not invent any experience or skills not in the original resume
+education: Extract all education entries. Include degree, school, year, and grade/CGPA/percentage.
 
+additional: One line combining Languages and Interests from resume.
 
-                        IMPORTANT: Extract these from resume if present:
-                            - linkedin: LinkedIn profile URL
-                            - github: GitHub profile URL  
-                            - portfolio: Portfolio website URL
-                            - leetcode: Leetcode website URL
-                            - gfg: GFG website URL
-                            - phone: phone number
-                            - location: city, country
-
-                            If links are not in resume text, leave them as empty string.
+EXTRACT LINKS from resume text:
+    - linkedin: LinkedIn URL
+    - github: GitHub URL
+    - leetcode: LeetCode URL  
+    - gfg: GeeksforGeeks URL
+    - portfolio: Portfolio URL
+    - phone: phone number
+    - location: City, Country/State
+If not found in resume, leave as empty string "".
 `;
-
-
-
 
     for (const model of MODELS) {
         try {
@@ -320,26 +546,20 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                 config: {
                     responseMimeType: "application/json",
                     responseSchema: resumeSchema,
-                    temperature: 0.3,
+                    temperature: 0.2,
                     maxOutputTokens: 8000
                 }
             });
 
-            
             let result;
-
             try {
                 result = JSON.parse(response.text);
-
             } catch (parseError) {
-
-                console.log("❌ Raw response that failed:", response.text.substring(0, 500));
+                console.log("❌ Parse failed:", response.text.substring(0, 300));
                 throw new Error("AI returned incomplete response. Please try again.");
             }
 
-
             console.log(`✅ Resume generated with model: ${model}`);
-            console.log(result);
             return result;
 
         } catch (error) {
@@ -354,6 +574,8 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
 
     throw new Error("All AI models unavailable. Please try again in a minute.");
 }
+
+
 
 
 
