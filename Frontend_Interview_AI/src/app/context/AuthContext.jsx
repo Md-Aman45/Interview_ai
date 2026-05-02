@@ -81,8 +81,6 @@
 
 
 
-
-
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { authService } from "../services/auth.service.js";
 
@@ -99,6 +97,7 @@ export function AuthProvider({ children }) {
         const currentUser = await authService.getCurrentUser();
         if (!ignore) setUser(currentUser);
       } catch {
+        // 401 here = not logged in = normal, not an error
         if (!ignore) setUser(null);
       } finally {
         if (!ignore) setLoading(false);
@@ -116,21 +115,31 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({
     user,
     loading,
+
     async login(email, password) {
       const data = await authService.login({ email, password });
       setUser(data.user);
+      return data;
     },
+
     async register(username, email, password) {
       return await authService.register({ username, email, password });
     },
-    async verifyOtp(email, otp) {
-      const data = await authService.verifyOtp({ email, otp });
+
+    // OTP verify → then auto-login using the same credentials
+    async verifyOtp(email, otp, password) {
+      await authService.verifyOtp({ email, otp });
+      // Now log in automatically
+      const data = await authService.login({ email, password });
       setUser(data.user);
+      return data;
     },
+
     async logout() {
       await authService.logout();
       setUser(null);
     },
+
     setUser,
   }), [loading, user]);
 

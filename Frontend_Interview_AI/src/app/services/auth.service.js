@@ -47,7 +47,6 @@
 
 
 
-
 import { api } from "../config/api.js";
 import { normalizeUser } from "../utils/normalizers.js";
 
@@ -57,25 +56,22 @@ export const authService = {
     return response.data;
   },
 
+  // Backend only verifies — does NOT return a token or log in
+  // After this succeeds, caller must call login() separately
   async verifyOtp(payload) {
     const response = await api.post("/auth/verify-otp", payload);
-    if (response.data?.token) {
-      localStorage.setItem("token", response.data.token);
-    }
-    return { ...response.data, user: normalizeUser(response.data) };
+    return response.data;
   },
 
   async login(payload) {
+    // Backend sets token as cookie, does NOT return token in JSON body
     const response = await api.post("/auth/login", payload);
-    if (response.data?.token) {
-      localStorage.setItem("token", response.data.token);
-    }
     return { ...response.data, user: normalizeUser(response.data) };
   },
 
   async logout() {
-    await api.get("/auth/logout");
-    localStorage.removeItem("token");
+    try { await api.get("/auth/logout"); } catch (_) {}
+    // nothing to remove from localStorage — backend uses cookies
   },
 
   async getCurrentUser() {
