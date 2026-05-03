@@ -61,25 +61,6 @@ async function registerUserController(req, res) {
     return res.status(201).json({
         message: "OTP sent to your email. Please verify your account."
     });
-
-
-
-    // const token = jwt.sign(
-    //     { id: user._id, username: user.username },
-    //     process.env.JWT_SECRET,
-    //     { expiresIn: "5d" }
-    // )
-
-    // res.cookie("token", token);
-
-    // res.status(201).json({
-    //     message: "User registered successfully",
-    //     user: {
-    //         id: user._id,
-    //         username: user.username,
-    //         email: user.email
-    //     }
-    // });
     console.log("Successfull register");
 
 }
