@@ -749,6 +749,11 @@ async function deleteReportController(req, res) {
 
 
 
+
+
+
+
+
 // async function generateResumePdfController(req, res) {
 //     try {
 //         const puppeteer = require("puppeteer-core");
