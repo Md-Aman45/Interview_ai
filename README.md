@@ -204,7 +204,7 @@ Limits reset on the 1st of each month. Displayed live in the dashboard.
 BCA, Patna College, Patna University | SGPA: 8.89/10 | Expected May 2026
 
 - GitHub: [github.com/Md-Aman45](https://github.com/Md-Aman45)
-- LinkedIn: [linkedin.com/in/md-aman](https://linkedin.com/in/md-aman)
+- LinkedIn: [linkedin.com/in/md-aman](https://www.linkedin.com/in/md-aman-7941a0355/)
 - Email: aman9534577@gmail.com
 
 ---
