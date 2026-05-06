@@ -28,13 +28,16 @@ async function generateReportController(req, res) {
             jobDescription
         });
 
+        let parsedExtraLinks = [];
+                try { parsedExtraLinks = extraLinks ? JSON.parse(extraLinks) : []; } catch { parsedExtraLinks = []; }
 
         const report = await interviewReportModel.create({
             user: req.user.id,
             resume,
             selfDescription,
             jobDescription,
-            links: { linkedin, github, portfolio, leetcode, gfg, extraLinks: extraLinks || [] },
+            links: { linkedin, github, portfolio, leetcode, gfg, extraLinks: parsedExtraLinks },
+            // links: { linkedin, github, portfolio, leetcode, gfg, extraLinks: extraLinks || [] },
             ...aiReport
         });
 
@@ -1179,301 +1182,556 @@ async function deleteReportController(req, res) {
 
 
 
+// async function generateResumePdfController(req, res) {
+//     try {
+//         const puppeteer = require("puppeteer-core");
+ 
+//         const report = await interviewReportModel.findOne({
+//             _id: req.params.reportId,
+//             user: req.user.id
+//         });
+//         if (!report) return res.status(404).json({ success: false, message: "Report not found" });
+ 
+//         const resumeData = await generateResumeContent({
+//             resume: report.resume,
+//             jobDescription: report.jobDescription,
+//             selfDescription: report.selfDescription
+//         });
+ 
+//         const safe = u => (!u ? '' : u.startsWith('http') ? u : `https://${u}`);
+//         const links = report.links || {};
+ 
+//         // ── CONTACT ROW ─────────────────────────────────────────
+//         const contactItems = [
+//             resumeData.location ? resumeData.location : null,
+//             resumeData.phone    ? resumeData.phone    : null,
+//             resumeData.email    ? `<a href="mailto:${resumeData.email}">${resumeData.email}</a>` : null,
+//             links.linkedin  ? `<a href="${safe(links.linkedin)}">linkedin.com/in/${links.linkedin.replace(/.*linkedin\.com\/in\//,'').replace(/\/?$/,'')}</a>` : null,
+//             links.github    ? `<a href="${safe(links.github)}">github.com/${links.github.replace(/.*github\.com\//,'').replace(/\/?$/,'')}</a>` : null,
+//             links.leetcode  ? `<a href="${safe(links.leetcode)}">LeetCode</a>` : null,
+//             links.gfg       ? `<a href="${safe(links.gfg)}">GeeksforGeeks</a>` : null,
+//             links.portfolio ? `<a href="${safe(links.portfolio)}">Portfolio</a>` : null,
+//             ...((links.extraLinks || []).map(l => l.url ? `<a href="${safe(l.url)}">${l.label || l.url}</a>` : null)),
+//         ].filter(Boolean);
+//         const contactHTML = contactItems.join(' <span class="dot">&#8226;</span> ');
+ 
+//         // ── SKILLS TABLE ─────────────────────────────────────────
+//         const skillsHTML = (resumeData.skillCategories || []).length
+//             ? `<table class="sk"><tbody>${resumeData.skillCategories.map(c =>
+//                 `<tr><td class="sk-c"><b>${c.category}:</b></td><td class="sk-v">${c.skills}</td></tr>`
+//               ).join('')}</tbody></table>`
+//             : `<p class="sk-f">${(resumeData.skills || []).join(', ')}</p>`;
+ 
+//         // ── SECTION BUILDER ──────────────────────────────────────
+//         const sectionHead = title => `<div class="sh"><span>${title.toUpperCase()}</span></div>`;
+ 
+//         // ── CERTIFICATIONS ───────────────────────────────────────
+//         const certHTML = (resumeData.certifications || []).length ? `
+// <div class="sec">
+//   ${sectionHead('Certifications')}
+//   ${resumeData.certifications.map(c => `
+//   <div class="entry">
+//     <div class="entry-head">
+//       <span class="entry-title">${c.name}</span>
+//       <span class="entry-date">${c.date || ''}</span>
+//     </div>
+//     ${c.issuer ? `<div class="entry-sub">Issued by ${c.issuer}${c.link ? ` &nbsp;&#8212;&nbsp; <a href="${safe(c.link)}">View Certificate</a>` : ''}</div>` : ''}
+//   </div>`).join('')}
+// </div>` : '';
+ 
+//         // ── EXPERIENCE ───────────────────────────────────────────
+//         const expHTML = (resumeData.experience || []).length ? `
+// <div class="sec">
+//   ${sectionHead('Experience')}
+//   ${resumeData.experience.map(e => `
+//   <div class="entry">
+//     <div class="entry-head">
+//       <span class="entry-title">${e.role} &#8212; <span class="entry-co">${e.company}</span></span>
+//       <span class="entry-date">${e.duration}</span>
+//     </div>
+//     ${e.stack ? `<div class="entry-sub">${e.stack}</div>` : ''}
+//     <ul>${(e.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>
+//   </div>`).join('')}
+// </div>` : '';
+ 
+//         // ── PROJECTS ─────────────────────────────────────────────
+//         const projHTML = (resumeData.projects || []).length ? `
+// <div class="sec">
+//   ${sectionHead('Projects')}
+//   ${resumeData.projects.map(p => `
+//   <div class="entry">
+//     <div class="entry-head">
+//       <span class="entry-title">${p.name}${p.link ? ` <span class="entry-link">| <a href="${safe(p.link)}">${p.link.replace(/^https?:\/\//,'')}</a></span>` : ''}</span>
+//       ${p.date ? `<span class="entry-date">${p.date}</span>` : ''}
+//     </div>
+//     ${p.stack ? `<div class="entry-sub">${p.stack}</div>` : ''}
+//     <ul>${(p.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>
+//   </div>`).join('')}
+// </div>` : '';
+ 
+//         // ── EDUCATION ────────────────────────────────────────────
+//         const eduHTML = (resumeData.education || []).length ? `
+// <div class="sec">
+//   ${sectionHead('Education')}
+//   ${resumeData.education.map(e => `
+//   <div class="entry">
+//     <div class="entry-head">
+//       <span class="entry-title">${e.degree}</span>
+//       <span class="entry-date">${e.year}</span>
+//     </div>
+//     <div class="entry-sub">${e.school}${e.grade && e.grade !== 'N/A' ? ' &nbsp;&#8212;&nbsp; ' + e.grade : ''}</div>
+//   </div>`).join('')}
+// </div>` : '';
+ 
+//         // ── ADDITIONAL ───────────────────────────────────────────
+//         const addHTML = resumeData.additional ? `
+// <div class="sec">
+//   ${sectionHead('Additional Information')}
+//   <p class="add">${resumeData.additional}</p>
+// </div>` : '';
+ 
+//         const roleTitle = (resumeData.roleTitle || 'Backend & Full Stack Developer');
+ 
+//         // ════════════════════════════════════════════════════════
+//         //  JAKE'S RESUME — Industry standard FAANG template
+//         //  Clean · ATS-friendly · Used by thousands at Google,
+//         //  Meta, Amazon, Microsoft, Apple
+//         //  Color: #1a1a2e (near-black navy) + subtle accent line
+//         // ════════════════════════════════════════════════════════
+//         const html = `<!DOCTYPE html>
+// <html lang="en">
+// <head>
+// <meta charset="UTF-8">
+// <style>
+ 
+// /* ═══ RESET ══════════════════════════════════════════════ */
+// *{margin:0;padding:0;box-sizing:border-box}
+ 
+// /* ═══ PAGE ═══════════════════════════════════════════════ */
+// html,body{
+//   width:100%;
+//   background:#fff;
+// }
+// body{
+//   font-family:'Times New Roman',Times,Georgia,serif;
+//   font-size:10.5pt;
+//   color:#1a1a2e;
+//   line-height:1.45;
+// }
+ 
+// /* Times New Roman is the ACTUAL font used in Jake's Resume
+//    and most top-tier FAANG resumes — it's ATS-perfect */
+ 
+// a{color:#1a1a2e;text-decoration:none}
+// b{font-weight:700}
+ 
+// /* ═══ HEADER ══════════════════════════════════════════════ */
+// .hdr{
+//   text-align:center;
+//   margin-bottom:6pt;
+//   padding-bottom:6pt;
+// }
+// .name{
+//   font-size:22pt;
+//   font-weight:700;
+//   letter-spacing:1.5pt;
+//   color:#1a1a2e;
+//   line-height:1.2;
+//   margin-bottom:2pt;
+// }
+// .role{
+//   font-size:10pt;
+//   font-weight:400;
+//   color:#444;
+//   letter-spacing:0.5pt;
+//   margin-bottom:5pt;
+//   font-style:italic;
+// }
+// .contact{
+//   font-size:9.5pt;
+//   color:#1a1a2e;
+//   line-height:1.8;
+// }
+// .contact a{color:#1a1a2e}
+// .dot{color:#777;margin:0 2pt}
+ 
+// /* ═══ SECTION ══════════════════════════════════════════════ */
+// .sec{margin-bottom:8pt}
+ 
+// /* Jake's Resume signature: full-width rule under section name */
+// .sh{
+//   border-bottom:1pt solid #1a1a2e;
+//   margin-bottom:5pt;
+//   padding-bottom:1pt;
+// }
+// .sh span{
+//   font-size:10.5pt;
+//   font-weight:700;
+//   letter-spacing:0.8pt;
+//   color:#1a1a2e;
+//   text-transform:uppercase;
+// }
+ 
+// /* ═══ SUMMARY ══════════════════════════════════════════════ */
+// .sum{
+//   font-size:10.5pt;
+//   color:#1a1a2e;
+//   line-height:1.55;
+//   text-align:justify;
+// }
+ 
+// /* ═══ SKILLS ════════════════════════════════════════════════ */
+// .sk{width:100%;border-collapse:collapse}
+// .sk tr{vertical-align:top}
+// .sk td{padding:1.2pt 0;font-size:10.5pt;line-height:1.45}
+// .sk-c{width:142pt;font-weight:700;color:#1a1a2e;padding-right:6pt;white-space:nowrap}
+// .sk-v{color:#222}
+// .sk-f{font-size:10.5pt;color:#222;line-height:1.6}
+ 
+// /* ═══ ENTRIES ═══════════════════════════════════════════════ */
+// .entry{margin-bottom:7pt}
+ 
+// .entry-head{
+//   display:flex;
+//   justify-content:space-between;
+//   align-items:baseline;
+//   gap:4pt;
+// }
+// .entry-title{
+//   font-size:10.5pt;
+//   font-weight:700;
+//   color:#1a1a2e;
+//   flex:1;
+//   line-height:1.4;
+// }
+// .entry-co{
+//   font-weight:400;
+//   font-style:italic;
+// }
+// .entry-date{
+//   font-size:10pt;
+//   color:#1a1a2e;
+//   white-space:nowrap;
+//   flex-shrink:0;
+//   font-style:italic;
+// }
+// .entry-sub{
+//   font-size:10pt;
+//   color:#444;
+//   font-style:italic;
+//   margin-top:1pt;
+//   margin-bottom:2pt;
+// }
+// .entry-link{
+//   font-weight:400;
+//   font-size:10pt;
+// }
+// .entry-link a{color:#1a1a2e;text-decoration:underline}
+ 
+// /* ═══ BULLETS ══════════════════════════════════════════════ */
+// ul{
+//   list-style:disc;
+//   padding-left:14pt;
+//   margin-top:2pt;
+// }
+// ul li{
+//   font-size:10.5pt;
+//   color:#1a1a2e;
+//   line-height:1.5;
+//   margin-bottom:1.5pt;
+// }
+ 
+// /* ═══ EDUCATION ════════════════════════════════════════════ */
+// /* re-uses .entry */
+ 
+// /* ═══ ADDITIONAL ═══════════════════════════════════════════ */
+// .add{font-size:10.5pt;color:#222;line-height:1.55}
+ 
+// </style>
+// </head>
+// <body>
+ 
+// <div class="hdr">
+//   <div class="name">${resumeData.name || 'MD AMAN'}</div>
+//   <div class="role">${roleTitle}</div>
+//   <div class="contact">${contactHTML}</div>
+// </div>
+ 
+// <div class="sec">
+//   ${sectionHead('Professional Summary')}
+//   <p class="sum">${resumeData.summary || ''}</p>
+// </div>
+ 
+// <div class="sec">
+//   ${sectionHead('Skills & Core Competencies')}
+//   ${skillsHTML}
+// </div>
+ 
+// ${certHTML}
+// ${expHTML}
+// ${projHTML}
+// ${eduHTML}
+// ${addHTML}
+ 
+// </body>
+// </html>`;
+ 
+//         // ── PDF via Puppeteer ────────────────────────────────────
+//         const browser = await puppeteer.launch({
+//             headless: "new",
+//             executablePath: process.env.CHROME_PATH ||
+//                 (process.platform === "win32"
+//                     ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+//                     : process.platform === "darwin"
+//                     ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+//                     : "/usr/bin/google-chrome"),
+//             args: ["--no-sandbox", "--disable-setuid-sandbox"]
+//         });
+ 
+//         const page = await browser.newPage();
+//         await page.setContent(html, { waitUntil: "networkidle0" });
+ 
+//         const pdfBuffer = await page.pdf({
+//             format: "A4",
+//             margin: { top: "12mm", bottom: "12mm", left: "14mm", right: "14mm" },
+//             printBackground: false
+//         });
+ 
+//         await browser.close();
+ 
+//         res.set({
+//             "Content-Type": "application/pdf",
+//             "Content-Disposition": `attachment; filename="resume.pdf"`
+//         });
+//         res.send(pdfBuffer);
+ 
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: error.message });
+//     }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
 async function generateResumePdfController(req, res) {
     try {
         const puppeteer = require("puppeteer-core");
- 
+
         const report = await interviewReportModel.findOne({
             _id: req.params.reportId,
             user: req.user.id
         });
         if (!report) return res.status(404).json({ success: false, message: "Report not found" });
- 
+
         const resumeData = await generateResumeContent({
             resume: report.resume,
             jobDescription: report.jobDescription,
             selfDescription: report.selfDescription
         });
- 
+
         const safe = u => (!u ? '' : u.startsWith('http') ? u : `https://${u}`);
         const links = report.links || {};
- 
-        // ── CONTACT ROW ─────────────────────────────────────────
+
+        // ── CONTACT ROW ──────────────────────────────────────────
         const contactItems = [
-            resumeData.location ? resumeData.location : null,
-            resumeData.phone    ? resumeData.phone    : null,
+            resumeData.location || null,
+            resumeData.phone    || null,
             resumeData.email    ? `<a href="mailto:${resumeData.email}">${resumeData.email}</a>` : null,
-            links.linkedin  ? `<a href="${safe(links.linkedin)}">linkedin.com/in/${links.linkedin.replace(/.*linkedin\.com\/in\//,'').replace(/\/?$/,'')}</a>` : null,
-            links.github    ? `<a href="${safe(links.github)}">github.com/${links.github.replace(/.*github\.com\//,'').replace(/\/?$/,'')}</a>` : null,
-            links.leetcode  ? `<a href="${safe(links.leetcode)}">LeetCode</a>` : null,
-            links.gfg       ? `<a href="${safe(links.gfg)}">GeeksforGeeks</a>` : null,
-            links.portfolio ? `<a href="${safe(links.portfolio)}">Portfolio</a>` : null,
+            links.linkedin  ? `<a href="${safe(links.linkedin)}">LinkedIn</a>`       : null,
+            links.github    ? `<a href="${safe(links.github)}">GitHub</a>`           : null,
+            links.leetcode  ? `<a href="${safe(links.leetcode)}">LeetCode</a>`       : null,
+            links.gfg       ? `<a href="${safe(links.gfg)}">GeeksforGeeks</a>`      : null,
+            links.portfolio ? `<a href="${safe(links.portfolio)}">Portfolio</a>`     : null,
             ...((links.extraLinks || []).map(l => l.url ? `<a href="${safe(l.url)}">${l.label || l.url}</a>` : null)),
         ].filter(Boolean);
-        const contactHTML = contactItems.join(' <span class="dot">&#8226;</span> ');
- 
-        // ── SKILLS TABLE ─────────────────────────────────────────
+        const contactHTML = contactItems.join('<span class="pipe"> | </span>');
+
+        // ── SKILLS ───────────────────────────────────────────────
         const skillsHTML = (resumeData.skillCategories || []).length
             ? `<table class="sk"><tbody>${resumeData.skillCategories.map(c =>
-                `<tr><td class="sk-c"><b>${c.category}:</b></td><td class="sk-v">${c.skills}</td></tr>`
+                `<tr><td class="sk-c"><b>${c.category}</b></td><td class="sk-v">${c.skills}</td></tr>`
               ).join('')}</tbody></table>`
-            : `<p class="sk-f">${(resumeData.skills || []).join(', ')}</p>`;
- 
-        // ── SECTION BUILDER ──────────────────────────────────────
-        const sectionHead = title => `<div class="sh"><span>${title.toUpperCase()}</span></div>`;
- 
+            : `<p class="sk-f">${(resumeData.skills || []).join('  •  ')}</p>`;
+
+        // ── SECTION HEADING ──────────────────────────────────────
+        const S = t => `<div class="sec-title">${t}</div>`;
+
         // ── CERTIFICATIONS ───────────────────────────────────────
         const certHTML = (resumeData.certifications || []).length ? `
-<div class="sec">
-  ${sectionHead('Certifications')}
-  ${resumeData.certifications.map(c => `
-  <div class="entry">
-    <div class="entry-head">
-      <span class="entry-title">${c.name}</span>
-      <span class="entry-date">${c.date || ''}</span>
-    </div>
-    ${c.issuer ? `<div class="entry-sub">Issued by ${c.issuer}${c.link ? ` &nbsp;&#8212;&nbsp; <a href="${safe(c.link)}">View Certificate</a>` : ''}</div>` : ''}
-  </div>`).join('')}
+<div class="sec">${S('Certifications')}
+${resumeData.certifications.map(c => `
+<div class="entry">
+  <div class="entry-head">
+    <span class="entry-title">${c.name}</span>
+    <span class="entry-date">${c.date || ''}</span>
+  </div>
+  ${c.issuer ? `<div class="entry-sub">Issued by ${c.issuer}${c.link ? ` &nbsp;|&nbsp; <a href="${safe(c.link)}">View Certificate</a>` : ''}</div>` : ''}
+</div>`).join('')}
 </div>` : '';
- 
+
         // ── EXPERIENCE ───────────────────────────────────────────
         const expHTML = (resumeData.experience || []).length ? `
-<div class="sec">
-  ${sectionHead('Experience')}
-  ${resumeData.experience.map(e => `
-  <div class="entry">
-    <div class="entry-head">
-      <span class="entry-title">${e.role} &#8212; <span class="entry-co">${e.company}</span></span>
-      <span class="entry-date">${e.duration}</span>
-    </div>
-    ${e.stack ? `<div class="entry-sub">${e.stack}</div>` : ''}
-    <ul>${(e.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>
-  </div>`).join('')}
+<div class="sec">${S('Experience')}
+${resumeData.experience.map(e => `
+<div class="entry">
+  <div class="entry-head">
+    <span class="entry-title">${e.role} — ${e.company}</span>
+    <span class="entry-date">${e.duration}</span>
+  </div>
+  ${e.stack ? `<div class="entry-stack">Stack: ${e.stack}</div>` : ''}
+  <ul>${(e.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>
+</div>`).join('')}
 </div>` : '';
- 
+
         // ── PROJECTS ─────────────────────────────────────────────
         const projHTML = (resumeData.projects || []).length ? `
-<div class="sec">
-  ${sectionHead('Projects')}
-  ${resumeData.projects.map(p => `
-  <div class="entry">
-    <div class="entry-head">
-      <span class="entry-title">${p.name}${p.link ? ` <span class="entry-link">| <a href="${safe(p.link)}">${p.link.replace(/^https?:\/\//,'')}</a></span>` : ''}</span>
-      ${p.date ? `<span class="entry-date">${p.date}</span>` : ''}
-    </div>
-    ${p.stack ? `<div class="entry-sub">${p.stack}</div>` : ''}
-    <ul>${(p.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>
-  </div>`).join('')}
+<div class="sec">${S('Projects')}
+${resumeData.projects.map(p => `
+<div class="entry">
+  <div class="entry-head">
+    <span class="entry-title">${p.name}${p.link ? ` <span class="entry-link">| <a href="${safe(p.link)}">${p.link.replace(/^https?:\/\//,'')}</a></span>` : ''}</span>
+    ${p.date ? `<span class="entry-date">${p.date}</span>` : ''}
+  </div>
+  ${p.stack ? `<div class="entry-stack">${p.stack}</div>` : ''}
+  <ul>${(p.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>
+</div>`).join('')}
 </div>` : '';
- 
+
         // ── EDUCATION ────────────────────────────────────────────
         const eduHTML = (resumeData.education || []).length ? `
-<div class="sec">
-  ${sectionHead('Education')}
-  ${resumeData.education.map(e => `
-  <div class="entry">
-    <div class="entry-head">
-      <span class="entry-title">${e.degree}</span>
-      <span class="entry-date">${e.year}</span>
-    </div>
-    <div class="entry-sub">${e.school}${e.grade && e.grade !== 'N/A' ? ' &nbsp;&#8212;&nbsp; ' + e.grade : ''}</div>
-  </div>`).join('')}
+<div class="sec">${S('Education')}
+${resumeData.education.map(e => `
+<div class="edu-row">
+  <div class="edu-l">
+    <div class="edu-deg">${e.degree}</div>
+    <div class="edu-sch">${e.school}${e.grade && e.grade !== 'N/A' ? ' &nbsp;|&nbsp; ' + e.grade : ''}</div>
+  </div>
+  <div class="edu-yr">${e.year}</div>
+</div>`).join('')}
 </div>` : '';
- 
+
         // ── ADDITIONAL ───────────────────────────────────────────
         const addHTML = resumeData.additional ? `
-<div class="sec">
-  ${sectionHead('Additional Information')}
-  <p class="add">${resumeData.additional}</p>
+<div class="sec">${S('Additional Information')}
+<p class="add">${resumeData.additional}</p>
 </div>` : '';
- 
-        const roleTitle = (resumeData.roleTitle || 'Backend & Full Stack Developer');
- 
-        // ════════════════════════════════════════════════════════
-        //  JAKE'S RESUME — Industry standard FAANG template
-        //  Clean · ATS-friendly · Used by thousands at Google,
-        //  Meta, Amazon, Microsoft, Apple
-        //  Color: #1a1a2e (near-black navy) + subtle accent line
-        // ════════════════════════════════════════════════════════
+
+        // ── FINAL HTML ───────────────────────────────────────────
         const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <style>
- 
-/* ═══ RESET ══════════════════════════════════════════════ */
 *{margin:0;padding:0;box-sizing:border-box}
- 
-/* ═══ PAGE ═══════════════════════════════════════════════ */
-html,body{
-  width:100%;
-  background:#fff;
-}
+html,body{width:100%;background:#fff}
 body{
-  font-family:'Times New Roman',Times,Georgia,serif;
-  font-size:10.5pt;
-  color:#1a1a2e;
-  line-height:1.45;
-}
- 
-/* Times New Roman is the ACTUAL font used in Jake's Resume
-   and most top-tier FAANG resumes — it's ATS-perfect */
- 
-a{color:#1a1a2e;text-decoration:none}
-b{font-weight:700}
- 
-/* ═══ HEADER ══════════════════════════════════════════════ */
-.hdr{
-  text-align:center;
-  margin-bottom:6pt;
-  padding-bottom:6pt;
-}
-.name{
-  font-size:22pt;
-  font-weight:700;
-  letter-spacing:1.5pt;
-  color:#1a1a2e;
-  line-height:1.2;
-  margin-bottom:2pt;
-}
-.role{
-  font-size:10pt;
-  font-weight:400;
-  color:#444;
-  letter-spacing:0.5pt;
-  margin-bottom:5pt;
-  font-style:italic;
-}
-.contact{
+  font-family:Arial,Helvetica,sans-serif;
   font-size:9.5pt;
-  color:#1a1a2e;
-  line-height:1.8;
-}
-.contact a{color:#1a1a2e}
-.dot{color:#777;margin:0 2pt}
- 
-/* ═══ SECTION ══════════════════════════════════════════════ */
-.sec{margin-bottom:8pt}
- 
-/* Jake's Resume signature: full-width rule under section name */
-.sh{
-  border-bottom:1pt solid #1a1a2e;
-  margin-bottom:5pt;
-  padding-bottom:1pt;
-}
-.sh span{
-  font-size:10.5pt;
-  font-weight:700;
-  letter-spacing:0.8pt;
-  color:#1a1a2e;
-  text-transform:uppercase;
-}
- 
-/* ═══ SUMMARY ══════════════════════════════════════════════ */
-.sum{
-  font-size:10.5pt;
-  color:#1a1a2e;
-  line-height:1.55;
-  text-align:justify;
-}
- 
-/* ═══ SKILLS ════════════════════════════════════════════════ */
-.sk{width:100%;border-collapse:collapse}
-.sk tr{vertical-align:top}
-.sk td{padding:1.2pt 0;font-size:10.5pt;line-height:1.45}
-.sk-c{width:142pt;font-weight:700;color:#1a1a2e;padding-right:6pt;white-space:nowrap}
-.sk-v{color:#222}
-.sk-f{font-size:10.5pt;color:#222;line-height:1.6}
- 
-/* ═══ ENTRIES ═══════════════════════════════════════════════ */
-.entry{margin-bottom:7pt}
- 
-.entry-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  gap:4pt;
-}
-.entry-title{
-  font-size:10.5pt;
-  font-weight:700;
-  color:#1a1a2e;
-  flex:1;
+  color:#1a1a1a;
   line-height:1.4;
 }
-.entry-co{
-  font-weight:400;
-  font-style:italic;
+a{color:#1a1a1a;text-decoration:none}
+
+/* HEADER */
+.hdr{margin-bottom:7pt;padding-bottom:6pt;border-bottom:1.5pt solid #1a1a1a;text-align:center}
+.name{font-size:19pt;font-weight:700;color:#1a1a1a;letter-spacing:0.3pt;margin-bottom:2pt}
+.role{font-size:9.8pt;color:#444;margin-bottom:4pt;font-weight:400}
+.contact{font-size:8.8pt;color:#222;line-height:1.8}
+.contact a{color:#1a1a1a}
+.pipe{color:#999}
+
+/* SECTION */
+.sec{margin-bottom:8pt}
+.sec-title{
+  font-size:9pt;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.8pt;
+  color:#1a1a1a;
+  border-bottom:1pt solid #1a1a1a;
+  padding-bottom:2pt;
+  margin-bottom:5pt;
 }
-.entry-date{
-  font-size:10pt;
-  color:#1a1a2e;
-  white-space:nowrap;
-  flex-shrink:0;
-  font-style:italic;
-}
-.entry-sub{
-  font-size:10pt;
-  color:#444;
-  font-style:italic;
-  margin-top:1pt;
-  margin-bottom:2pt;
-}
-.entry-link{
-  font-weight:400;
-  font-size:10pt;
-}
-.entry-link a{color:#1a1a2e;text-decoration:underline}
- 
-/* ═══ BULLETS ══════════════════════════════════════════════ */
-ul{
-  list-style:disc;
-  padding-left:14pt;
-  margin-top:2pt;
-}
+
+/* SUMMARY */
+.sum{font-size:9.5pt;line-height:1.55;color:#222}
+
+/* SKILLS */
+.sk{width:100%;border-collapse:collapse}
+.sk td{padding:1.5pt 0;font-size:9.5pt;line-height:1.4;vertical-align:top}
+// .sk-c{width:112pt;font-weight:700;color:#1a1a1a;padding-right:8pt;white-space:nowrap}
+.sk-c{width:125pt;font-weight:700;color:#1a1a1a;padding-right:10pt;white-space:nowrap}
+.sk-v{color:#1a1a1a}
+.sk-f{font-size:9.5pt;color:#222;line-height:1.55}
+
+/* ENTRIES */
+.entry{margin-bottom:7pt}
+.entry-head{display:flex;justify-content:space-between;align-items:baseline;gap:4pt;margin-bottom:1.5pt}
+.entry-title{font-size:9.8pt;font-weight:700;color:#1a1a1a;flex:1;line-height:1.3}
+.entry-date{font-size:9pt;color:#444;white-space:nowrap;flex-shrink:0}
+.entry-sub{font-size:9pt;color:#444;font-style:italic;margin-bottom:2.5pt}
+.entry-stack{font-size:9pt;color:#444;margin-bottom:2.5pt}
+.entry-link{font-weight:400;font-size:9pt}
+.entry-link a{color:#1a1a1a;text-decoration:underline}
+
+/* BULLETS */
+ul{list-style:none;padding:0;margin:2pt 0 0 0}
 ul li{
-  font-size:10.5pt;
-  color:#1a1a2e;
-  line-height:1.5;
-  margin-bottom:1.5pt;
+  font-size:9.5pt;
+  color:#1a1a1a;
+  line-height:1.45;
+  margin-bottom:2pt;
+  padding-left:10pt;
+  position:relative;
 }
- 
-/* ═══ EDUCATION ════════════════════════════════════════════ */
-/* re-uses .entry */
- 
-/* ═══ ADDITIONAL ═══════════════════════════════════════════ */
-.add{font-size:10.5pt;color:#222;line-height:1.55}
- 
+ul li::before{content:"•";position:absolute;left:1pt;top:0;color:#555;font-size:9pt}
+
+/* EDUCATION */
+.edu-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5pt;gap:6pt}
+.edu-deg{font-weight:700;font-size:9.8pt;color:#1a1a1a}
+.edu-sch{font-size:9pt;color:#444;margin-top:1.5pt}
+.edu-yr{font-size:9pt;color:#444;white-space:nowrap;flex-shrink:0;text-align:right}
+
+/* ADDITIONAL */
+.add{font-size:9.5pt;color:#333;line-height:1.55}
 </style>
 </head>
 <body>
- 
+
 <div class="hdr">
-  <div class="name">${resumeData.name || 'MD AMAN'}</div>
-  <div class="role">${roleTitle}</div>
+  <div class="name">${resumeData.name || 'Candidate'}</div>
+  <div class="role">${resumeData.roleTitle || 'Backend & Full Stack Developer'}</div>
   <div class="contact">${contactHTML}</div>
 </div>
- 
+
 <div class="sec">
-  ${sectionHead('Professional Summary')}
+  <div class="sec-title">Summary</div>
   <p class="sum">${resumeData.summary || ''}</p>
 </div>
- 
+
 <div class="sec">
-  ${sectionHead('Skills & Core Competencies')}
+  <div class="sec-title">Skills</div>
   ${skillsHTML}
 </div>
- 
+
 ${certHTML}
 ${expHTML}
 ${projHTML}
 ${eduHTML}
 ${addHTML}
- 
+
 </body>
 </html>`;
- 
-        // ── PDF via Puppeteer ────────────────────────────────────
+
+        // ── PUPPETEER ────────────────────────────────────────────
         const browser = await puppeteer.launch({
             headless: "new",
             executablePath: process.env.CHROME_PATH ||
@@ -1484,28 +1742,27 @@ ${addHTML}
                     : "/usr/bin/google-chrome"),
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
- 
+
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: "networkidle0" });
- 
         const pdfBuffer = await page.pdf({
             format: "A4",
             margin: { top: "12mm", bottom: "12mm", left: "14mm", right: "14mm" },
             printBackground: false
         });
- 
         await browser.close();
- 
+
         res.set({
             "Content-Type": "application/pdf",
             "Content-Disposition": `attachment; filename="resume.pdf"`
         });
         res.send(pdfBuffer);
- 
+
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+
 
 
 

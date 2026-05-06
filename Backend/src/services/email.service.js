@@ -15,7 +15,8 @@ async function sendPasswordResetEmail(email, resetToken) {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     await transporter.sendMail({
-        from: `"InterviewAI <${process.env.EMAIL_USER}>`,
+        // from: `"InterviewAI <${process.env.EMAIL_USER}>`,
+        from: `"InterviewAI Support" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Reset your password - InterviewAI',
         html: `

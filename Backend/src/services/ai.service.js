@@ -388,7 +388,7 @@ If not found in resume, leave as empty string "".
                     responseMimeType: "application/json",
                     responseSchema: resumeSchema,
                     temperature: 0.2,
-                    maxOutputTokens: 8000
+                    maxOutputTokens: 1600
                 }
             });
 
@@ -396,7 +396,9 @@ If not found in resume, leave as empty string "".
             try {
                 result = JSON.parse(response.text);
             } catch (parseError) {
-                console.log("❌ Parse failed:", response.text.substring(0, 300));
+                // console.log("❌ Parse failed:", response.text.substring(0, 300));
+                // console.log("❌ Parse failed, response length:", response.text.length);
+                console.log("❌ Full raw response:", response.text);
                 throw new Error("AI returned incomplete response. Please try again.");
             }
 
