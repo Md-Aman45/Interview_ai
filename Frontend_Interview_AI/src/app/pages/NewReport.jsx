@@ -211,6 +211,7 @@ import { toast } from "sonner";
 import { Layout } from "../components/Layout.jsx";
 import { interviewService } from "../services/interview.service.js";
 import { validateFile } from "../utils/validation.js";
+import { useUsageLimit } from '../hooks/useLUsageimit.js';
 
 
 const OUTPUT_POINTS = [
@@ -231,6 +232,8 @@ const DEFAULT_LINKS = [
 ];
 
 export function NewReport() {
+    const { isLimitReached, getResetsOn } = useUsageLimit();
+    const reportLimitReached = isLimitReached('report');
     const navigate = useNavigate();
     const [resume, setResume] = useState(null);
     const [jobDescription, setJobDescription] = useState("");
@@ -287,7 +290,19 @@ export function NewReport() {
             toast.success("Report created!");
             navigate(`/reports/${data.report._id}`);
         } catch (err) {
-            toast.error(err?.response?.data?.message || "Report generation failed.");
+            // toast.error(err?.response?.data?.message || "Report generation failed.");
+            const data = err?.response?.data;
+    if (data?.limitExceeded) {
+        toast.error(
+            `Monthly limit reached. Resets on ${data.resetsOn}`,
+            {
+                description: data.message,
+                duration: 8000,
+            }
+        );
+    } else {
+        toast.error(data?.message || "Report generation failed.");
+    }
         } finally {
             setLoading(false);
         }
@@ -505,12 +520,32 @@ export function NewReport() {
                                 </li>
                             ))}
                         </ul>
-                        <button type="submit"
+                        {/* <button type="submit"
                             className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
                             <SparklesIcon className="h-4 w-4" />
                             Generate report
                         </button>
-                        <p className="mt-3 text-xs text-center text-slate-400 dark:text-slate-500">Takes ~15–30 seconds</p>
+                        <p className="mt-3 text-xs text-center text-slate-400 dark:text-slate-500">Takes ~15–30 seconds</p> */}
+
+
+                        {/* Replace the submit button */}
+{reportLimitReached ? (
+    <div className="rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 p-4 text-center">
+        <div className="text-sm font-semibold text-red-600 dark:text-red-400 mb-1">
+            Monthly limit reached
+        </div>
+        <div className="text-xs text-red-500 dark:text-red-400">
+            Resets on {getResetsOn('report')}
+        </div>
+    </div>
+) : (
+    <button type="submit"
+        className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+        <SparklesIcon className="h-4 w-4" />
+        Generate report
+    </button>
+)}
+<p className="mt-3 text-xs text-center text-slate-400 dark:text-slate-500">Takes ~15–30 seconds</p>
                     </div>
                 </aside>
             </form>

@@ -120,7 +120,8 @@ export function normalizeReport(report) {
           reasoning: report.hiringRecommendation?.reasoning || report.overallAnalysis || "",
         };
 
-  const breakdown = report.scoreBreakdown || report.matchScore || {};
+  // const breakdown = report.scoreBreakdown || report.matchScore || {};
+  const breakdown = report.scoreBreakdown || {};
 
   return {
     _id: report._id || report.id,

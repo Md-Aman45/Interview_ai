@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { DownloadIcon, EyeIcon, FileTextIcon, SearchIcon, Trash2Icon } from "lucide-react";
+import { DownloadIcon, EyeIcon, FileTextIcon, SearchIcon, Trash2Icon, EyeOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState } from "../components/EmptyState.jsx";
@@ -9,8 +9,11 @@ import { ScoreCircle } from "../components/ScoreCircle.jsx";
 import { LoadingSpinner } from "../components/LoadingSpinner.jsx";
 import { interviewService } from "../services/interview.service.js";
 import { formatDate, getRecommendationBadge } from "../utils/formatters.js";
+import { useUsageLimit } from '../hooks/useLUsageimit.js';
 
 export function Reports() {
+  const { isLimitReached, getResetsOn } = useUsageLimit();
+  const resumeLimitReached = isLimitReached('resume');
   const [reports, setReports] = useState([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -65,7 +68,24 @@ export function Reports() {
       URL.revokeObjectURL(url);
       toast.success("Resume downloaded.");
     } catch (error) {
-      toast.error("Resume generation failed.");
+      // toast.error("Resume generation failed.");
+      let data = {};
+
+  if (error?.response?.data instanceof Blob) {
+    const text = await error.response.data.text();
+    data = JSON.parse(text);
+  } else {
+    data = error?.response?.data;
+  }
+
+  if (data?.limitExceeded) {
+    toast.error(`Monthly limit reached. Resets on ${data.resetsOn}`, {
+      description: data.message,
+      duration: 8000,
+    });
+  } else {
+    toast.error(data?.message || "Resume generation failed.");
+  }
     }
   }
 
@@ -164,22 +184,54 @@ export function Reports() {
                       <EyeIcon className="h-4 w-4" />
                       Open
                     </button>
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => handleResumeDownload(report._id)}
                       className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900"
                     >
                       <DownloadIcon className="h-4 w-4" />
                       Resume
-                    </button>
-                    <button
+                    </button> */}
+
+
+
+                      {resumeLimitReached ? (
+    <button
+        type="button"
+        disabled
+        title={`Resume limit reached. Resets ${getResetsOn('resume')}`}
+        className="inline-flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-900/50 px-4 py-2 text-sm font-semibold text-red-400 cursor-not-allowed opacity-70"
+    >
+        <DownloadIcon className="h-4 w-4" />
+        Limit reached
+    </button>
+) : (
+    <button
+        type="button"
+        onClick={() => handleResumeDownload(report._id)}
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900"
+    >
+        <DownloadIcon className="h-4 w-4" />
+        Resume
+    </button>
+)}
+
+                    {/* <button
                       type="button"
                       onClick={() => handleDelete(report._id)}
                       className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:border-rose-900/70 dark:text-rose-400 dark:hover:bg-rose-950/40"
                     >
                       <Trash2Icon className="h-4 w-4" />
                       Delete
-                    </button>
+                    </button> */}
+<button
+    type="button"
+    onClick={() => setReports(current => current.filter(r => r._id !== report._id))}
+    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+    title="Hide from list (does not delete)"
+>
+    <EyeOffIcon className="h-3.5 w-3.5" /> Hide
+</button>
                   </div>
                 </div>
               );

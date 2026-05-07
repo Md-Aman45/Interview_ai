@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import {
   ArrowRightIcon, BarChart3Icon, FileTextIcon, MicIcon,
   SparklesIcon, TrendingUpIcon, GithubIcon, LinkedinIcon, ExternalLinkIcon,
@@ -219,9 +219,11 @@ export function Dashboard() {
   const [usage, setUsage] = useState(null);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     async function load() {
+      console.log(location);
       try {
         const [summaryRes, usageRes, reportsRes] = await Promise.all([
           analyticsService.getSummary(),
@@ -236,7 +238,7 @@ export function Dashboard() {
       }
     }
     load();
-  }, []);
+  }, [location.key]);
 
   const recentReports = useMemo(() => reports.slice(0, 4), [reports]);
 
@@ -282,7 +284,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Usage */}
+          {/* Usage
           <div className="rounded-[2rem] border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-950">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 mb-6">Monthly usage</div>
             <div className="space-y-6">
@@ -305,7 +307,76 @@ export function Dashboard() {
                 Resets on {formatDate(usage.resetDate)}
               </p>
             )}
-          </div>
+          </div> */}
+
+
+
+          {/* Usage */}
+<div className="rounded-[2rem] border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-950">
+    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 mb-6">
+        Monthly usage
+    </div>
+    <div className="space-y-5">
+        {[
+            { label: "Reports",         used: usage?.reports?.used || 0,         limit: usage?.reports?.limit || 20,         resetsOn: usage?.resetsAt, color: "indigo"  },
+            { label: "Resume exports",  used: usage?.resumes?.used || 0,          limit: usage?.resumes?.limit || 15,          resetsOn: usage?.resetsAt, color: "amber"   },
+            { label: "Mock interviews", used: usage?.mockInterviews?.used || 0,   limit: usage?.mockInterviews?.limit || 10,   resetsOn: usage?.resetsAt, color: "emerald" },
+        ].map(({ label, used, limit, resetsOn, color }) => {
+            const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
+            const isExceeded = used >= limit && limit > 0;
+            const isWarning  = pct >= 80 && !isExceeded;
+            const barColor   = isExceeded ? '#ef4444' : isWarning ? '#f59e0b' :
+                color === 'indigo' ? '#6366f1' : color === 'amber' ? '#f59e0b' : '#10b981';
+
+            return (
+                <div key={label} className={`rounded-2xl p-4 border transition ${
+                    isExceeded
+                        ? 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20'
+                        : isWarning
+                        ? 'border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20'
+                        : 'border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900'
+                }`}>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{label}</span>
+                            {isExceeded && (
+                                <span className="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/40 px-2 py-0.5 rounded-full">
+                                    Limit reached
+                                </span>
+                            )}
+                            {isWarning && (
+                                <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
+                                    Almost full
+                                </span>
+                            )}
+                        </div>
+                        <span className={`text-xs font-semibold font-mono ${
+                            isExceeded ? 'text-red-600 dark:text-red-400' :
+                            isWarning  ? 'text-amber-600 dark:text-amber-400' :
+                            'text-slate-500 dark:text-slate-400'
+                        }`}>
+                            {used} / {limit}
+                        </span>
+                    </div>
+
+                    <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: barColor }} />
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                            {resetsOn ? `Resets ${resetsOn}` : ''}
+                        </span>
+                        <span className={`text-xs font-medium ${
+                            isExceeded ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-slate-400'
+                        }`}>{pct}%</span>
+                    </div>
+                </div>
+            );
+        })}
+    </div>
+</div>
         </section>
 
         {/* Metrics */}

@@ -1523,6 +1523,7 @@ async function deleteReportController(req, res) {
 
 async function generateResumePdfController(req, res) {
     try {
+        console.log("🔄 Resume PDF requested for report:", req.params.reportId);
         const puppeteer = require("puppeteer-core");
 
         const report = await interviewReportModel.findOne({

@@ -38,12 +38,16 @@ function checkLimit(type) {
             }
 
             if (usage.count >= LIMITS[type]) {
+                const resetDate = new Date(usage.resetAt).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+});
+
                 return res.status(429).json({
                     success: false,
-                    message: `Monthky limit reached`,
+                    message: `You've used 100% of your ${type} limit for this month. Your limit resets on ${resetDate}. Please wait until then to generate more.`,
                     limit: LIMITS[type],
                     used: usage.count,
-                    resetsOn: usage.resetAt.toDateString()
+                    resetsOn: resetDate,
                 });
             }
 

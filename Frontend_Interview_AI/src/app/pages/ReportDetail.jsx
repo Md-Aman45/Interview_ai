@@ -10,6 +10,7 @@ import { Layout } from "../components/Layout.jsx";
 import { LoadingSpinner } from "../components/LoadingSpinner.jsx";
 import { interviewService } from "../services/interview.service.js";
 import { getRecommendationBadge } from "../utils/formatters.js";
+import { useUsageLimit } from '../hooks/useLUsageimit.js';
 
 // ── helpers ──────────────────────────────────────────────
 function scoreColor(v) {
@@ -174,6 +175,9 @@ export function ReportDetail() {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const { isLimitReached, getResetsOn } = useUsageLimit();
+  const resumeLimitReached = isLimitReached('resume');
+  const mockLimitReached = isLimitReached('mock');
 
   useEffect(() => {
     interviewService.getReport(id)
@@ -222,10 +226,16 @@ export function ReportDetail() {
       title={report.jobRole}
       eyebrow="Report detail"
       actions={
-        <button type="button" onClick={handleDownload} disabled={downloading}
+        <button type="button" onClick={handleDownload} disabled={downloading || resumeLimitReached}
           className="hidden md:inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-4 py-2 text-sm font-semibold text-white dark:text-slate-900 hover:opacity-80 disabled:opacity-50 transition">
           <DownloadIcon className="h-3.5 w-3.5" />
-          {downloading ? "Generating..." : "Download resume"}
+          {/* {downloading ? "Generating..." : "Download resume"}
+           */}
+           {resumeLimitReached
+  ? `Limit reached • Resets ${getResetsOn('resume')}`
+  : downloading
+    ? "Generating..."
+    : "Download resume"}
         </button>
       }
     >
@@ -273,10 +283,16 @@ export function ReportDetail() {
                 className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition shadow-lg shadow-indigo-500/20">
                 <MicIcon className="h-4 w-4" /> Practice this role
               </Link>
-              <button onClick={handleDownload} disabled={downloading}
+              <button onClick={handleDownload} disabled={downloading || resumeLimitReached}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition disabled:opacity-50">
                 <DownloadIcon className="h-4 w-4" />
-                {downloading ? "Generating..." : "Download resume"}
+                {/* {downloading ? "Generating..." : "Download resume"}
+                 */}
+                 {resumeLimitReached
+  ? `Limit reached • Resets ${getResetsOn('resume')}`
+  : downloading
+    ? "Generating..."
+    : "Download resume"}
               </button>
             </div>
             {/* Mini radar */}

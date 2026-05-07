@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner.jsx';
 import { interviewService } from '../services/interview.service.js';
 import { mockService, getActiveSession, clearActiveSession } from '../services/mock.service.js';
 import { formatDate } from '../utils/formatters.js';
+import { useUsageLimit } from '../hooks/useLUsageimit.js';
 
 // ─────────────────────────────────────────────────────────
 // INSTRUCTIONS  — premium two-column layout
@@ -19,6 +20,8 @@ function InstructionsScreen({ onConfirm }) {
     { num: '05', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', title: 'Stay on this tab', desc: 'Switching tabs 3 times ends your session automatically (cheat detection).' },
     { num: '06', color: '#ef4444', bg: 'rgba(239,68,68,0.08)', title: '3× bad = pause prompt', desc: 'Three consecutive 1/10 scores triggers a pause so you can collect yourself.' },
   ];
+  const { isLimitReached, getResetsOn } = useUsageLimit();
+  const mockLimitReached = isLimitReached('mock');
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -81,6 +84,13 @@ function InstructionsScreen({ onConfirm }) {
             Use <strong>Google Chrome</strong> for best voice recognition. Allow microphone access when prompted.
           </p>
         </div>
+
+        {mockLimitReached ? (
+    <div className="w-full rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 p-4 text-center">
+        <div className="text-sm font-semibold text-red-600 dark:text-red-400 mb-1">Mock interview limit reached</div>
+        <div className="text-xs text-red-500">Resets on {getResetsOn('mock')}</div>
+    </div>
+) : (
         <button onClick={onConfirm} style={{
           display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap',
           padding: '13px 28px', borderRadius: 16, border: 'none',
@@ -93,6 +103,7 @@ function InstructionsScreen({ onConfirm }) {
         >
           <span style={{ fontSize: 18 }}>🚀</span> Start interview
         </button>
+      )}
       </div>
     </div>
   );
@@ -701,7 +712,18 @@ export function MockInterview() {
     try {
       const session = await mockService.startSession({ reportId });
       setActiveSession(session); setPhase('session');
-    } catch (err) { toast.error(err?.response?.data?.message || 'Could not start session.'); }
+    } catch (err) { 
+          // toast.error(err?.response?.data?.message || 'Could not start session.'); 
+          const data = err?.response?.data;
+    if (data?.limitExceeded) {
+        toast.error(`Mock session limit reached. Resets on ${data.resetsOn}`, {
+            description: data.message,
+            duration: 8000,
+        });
+    } else {
+        toast.error(data?.message || 'Could not start session.');
+    }
+      }
     finally { setSubmitting(false); }
   };
 
