@@ -39,8 +39,8 @@ function checkLimit(type) {
 
             if (usage.count >= LIMITS[type]) {
                 const resetDate = new Date(usage.resetAt).toLocaleDateString('en-US', {
-    month: 'long', day: 'numeric', year: 'numeric'
-});
+                    month: 'long', day: 'numeric', year: 'numeric'
+                });
 
                 return res.status(429).json({
                     success: false,

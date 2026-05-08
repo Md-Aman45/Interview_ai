@@ -251,6 +251,11 @@ const interviewReportSchema = new mongoose.Schema({
         extraLinks: [{ label: String, url: String }]
     },
 
+    isPinned: {
+        type: Boolean,
+        default: false
+    },
+
 }, {
     timestamps: true
 })

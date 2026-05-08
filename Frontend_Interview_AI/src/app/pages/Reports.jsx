@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { DownloadIcon, EyeIcon, FileTextIcon, SearchIcon, Trash2Icon, EyeOffIcon } from "lucide-react";
+import {
+  DownloadIcon,
+  EyeIcon,
+  FileTextIcon,
+  SearchIcon,
+  Trash2Icon,
+  EyeOffIcon,
+  StarIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Layout } from "../components/Layout.jsx";
 import { EmptyState } from "../components/EmptyState.jsx";
@@ -9,15 +17,16 @@ import { ScoreCircle } from "../components/ScoreCircle.jsx";
 import { LoadingSpinner } from "../components/LoadingSpinner.jsx";
 import { interviewService } from "../services/interview.service.js";
 import { formatDate, getRecommendationBadge } from "../utils/formatters.js";
-import { useUsageLimit } from '../hooks/useLUsageimit.js';
+import { useUsageLimit } from "../hooks/useLUsageimit.js";
 
 export function Reports() {
   const { isLimitReached, getResetsOn } = useUsageLimit();
-  const resumeLimitReached = isLimitReached('resume');
+  const resumeLimitReached = isLimitReached("resume");
   const [reports, setReports] = useState([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     async function loadReports() {
@@ -35,27 +44,33 @@ export function Reports() {
 
   const filteredReports = useMemo(() => {
     const value = query.trim().toLowerCase();
-    if (!value) {
-      return reports;
+
+    let filtered = reports;
+
+    if (value) {
+      filtered = reports.filter((report) =>
+        report.jobRole.toLowerCase().includes(value),
+      );
     }
-    return reports.filter((report) => report.jobRole.toLowerCase().includes(value));
+
+    return [...filtered].sort((a, b) => {
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
   }, [query, reports]);
 
-  async function handleDelete(id) {
-    if (!window.confirm("Delete this report from the workspace?")) {
-      return;
-    }
-
-    try {
-      await interviewService.deleteReport(id);
-      setReports((current) => current.filter((report) => report._id !== id));
-      toast.success("Report deleted.");
-    } catch (error) {
-      toast.error("Delete failed.");
-    }
+  async function handlePin(id) {
+    setReports((current) =>
+      current.map((r) => (r._id === id ? { ...r, isPinned: !r.isPinned } : r)),
+    );
   }
 
   async function handleResumeDownload(reportId) {
+    setDownloadingId(reportId);
+
     try {
       const blob = await interviewService.generateResume(reportId);
       const url = URL.createObjectURL(blob);
@@ -68,24 +83,25 @@ export function Reports() {
       URL.revokeObjectURL(url);
       toast.success("Resume downloaded.");
     } catch (error) {
-      // toast.error("Resume generation failed.");
       let data = {};
 
-  if (error?.response?.data instanceof Blob) {
-    const text = await error.response.data.text();
-    data = JSON.parse(text);
-  } else {
-    data = error?.response?.data;
-  }
+      if (error?.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        data = JSON.parse(text);
+      } else {
+        data = error?.response?.data;
+      }
 
-  if (data?.limitExceeded) {
-    toast.error(`Monthly limit reached. Resets on ${data.resetsOn}`, {
-      description: data.message,
-      duration: 8000,
-    });
-  } else {
-    toast.error(data?.message || "Resume generation failed.");
-  }
+      if (data?.limitExceeded) {
+        toast.error(`Monthly limit reached. Resets on ${data.resetsOn}`, {
+          description: data.message,
+          duration: 8000,
+        });
+      } else {
+        toast.error(data?.message || "Resume generation failed.");
+      }
+    } finally {
+      setDownloadingId(null);
     }
   }
 
@@ -131,7 +147,9 @@ export function Reports() {
         ) : (
           <div className="space-y-4">
             {filteredReports.map((report) => {
-              const badge = getRecommendationBadge(report.hiringRecommendation.decision);
+              const badge = getRecommendationBadge(
+                report.hiringRecommendation.decision,
+              );
               return (
                 <div
                   key={report._id}
@@ -184,54 +202,92 @@ export function Reports() {
                       <EyeIcon className="h-4 w-4" />
                       Open
                     </button>
-                    {/* <button
+
+                    {resumeLimitReached ? (
+                      <button
+                        type="button"
+                        disabled
+                        title={`Resume limit reached. Resets ${getResetsOn("resume")}`}
+                        className="inline-flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-900/50 px-4 py-2 text-sm font-semibold text-red-400 cursor-not-allowed opacity-70"
+                      >
+                        <DownloadIcon className="h-4 w-4" />
+                        Limit reached
+                      </button>
+                    ) : (
+                      //                     <button
+                      //                       type="button"
+                      //                       onClick={() => handleResumeDownload(report._id)}
+                      //                       disabled={downloadingId === report._id}
+                      //                       className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                      //   ${
+                      //     downloadingId === report._id
+                      //       ? "bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-400"
+                      //       : "bg-indigo-600 text-white hover:bg-indigo-500"
+                      //   }
+                      // `}
+                      //                     >
+                      //                       <DownloadIcon
+                      //                         className={`h-4 w-4 ${
+                      //                           downloadingId === report._id ? "animate-pulse" : ""
+                      //                         }`}
+                      //                       />
+
+                      //                       {downloadingId === report._id
+                      //                         ? "Generating..."
+                      //                         : "Resume"}
+                      //                     </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleResumeDownload(report._id)}
+                        disabled={downloadingId === report._id}
+                        // className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+                        //   ${
+                        //     downloadingId === report._id
+                        //       ? "bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-400"
+                        //       : "bg-emerald-600 text-white hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                        //   }
+                        // `}
+
+                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition
+  ${
+    downloadingId === report._id
+      ? "bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-400"
+      : "bg-green-700 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500"
+  }
+`}
+                      >
+                        <DownloadIcon
+                          className={`h-4 w-4 ${
+                            downloadingId === report._id ? "animate-pulse" : ""
+                          }`}
+                        />
+
+                        {downloadingId === report._id
+                          ? "Generating..."
+                          : "Resume"}
+                      </button>
+                    )}
+
+                    <button
                       type="button"
-                      onClick={() => handleResumeDownload(report._id)}
-                      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900"
+                      onClick={() => handlePin(report._id)}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition
+    ${
+      report.isPinned
+        ? "border border-yellow-300 bg-yellow-50 text-yellow-700 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300"
+        : "border border-slate-200 bg-white text-slate-500 hover:border-yellow-300 hover:text-yellow-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+    }
+  `}
                     >
-                      <DownloadIcon className="h-4 w-4" />
-                      Resume
-                    </button> */}
+                      <StarIcon
+                        className={`h-3.5 w-3.5 ${
+                          report.isPinned ? "fill-current" : ""
+                        }`}
+                      />
 
-
-
-                      {resumeLimitReached ? (
-    <button
-        type="button"
-        disabled
-        title={`Resume limit reached. Resets ${getResetsOn('resume')}`}
-        className="inline-flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-900/50 px-4 py-2 text-sm font-semibold text-red-400 cursor-not-allowed opacity-70"
-    >
-        <DownloadIcon className="h-4 w-4" />
-        Limit reached
-    </button>
-) : (
-    <button
-        type="button"
-        onClick={() => handleResumeDownload(report._id)}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900"
-    >
-        <DownloadIcon className="h-4 w-4" />
-        Resume
-    </button>
-)}
-
-                    {/* <button
-                      type="button"
-                      onClick={() => handleDelete(report._id)}
-                      className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:border-rose-900/70 dark:text-rose-400 dark:hover:bg-rose-950/40"
-                    >
-                      <Trash2Icon className="h-4 w-4" />
-                      Delete
-                    </button> */}
-<button
-    type="button"
-    onClick={() => setReports(current => current.filter(r => r._id !== report._id))}
-    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-    title="Hide from list (does not delete)"
->
-    <EyeOffIcon className="h-3.5 w-3.5" /> Hide
-</button>
+                      {report.isPinned ? "Pinned" : "Pin"}
+                    </button>
                   </div>
                 </div>
               );

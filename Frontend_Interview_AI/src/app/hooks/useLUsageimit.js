@@ -10,7 +10,7 @@ export function useUsageLimit() {
         analyticsService.getUsage().then(data => {
             cachedUsage = data;
             setUsage(data);
-        }).catch(() => {});
+        }).catch(() => { });
     }, []);
 
     const isLimitReached = (type) => {

@@ -29,7 +29,7 @@ async function generateReportController(req, res) {
         });
 
         let parsedExtraLinks = [];
-                try { parsedExtraLinks = extraLinks ? JSON.parse(extraLinks) : []; } catch { parsedExtraLinks = []; }
+        try { parsedExtraLinks = extraLinks ? JSON.parse(extraLinks) : []; } catch { parsedExtraLinks = []; }
 
         const report = await interviewReportModel.create({
             user: req.user.id,
@@ -48,7 +48,7 @@ async function generateReportController(req, res) {
             report,
             usage: req.usageInfo
         });
-        
+
 
     } catch (error) {
         res.status(500).json({
@@ -70,7 +70,7 @@ async function getAllReportsController(req, res) {
             .sort({ createdAt: -1 })
             .select("title matchScore scoreBreakdown hiringRecommendation averageScore createdAt");
 
-        
+
         res.status(200).json({
             success: true,
             count: reports.length,
@@ -195,45 +195,6 @@ async function deleteReportController(req, res) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 async function generateResumePdfController(req, res) {
     try {
         console.log("🔄 Resume PDF requested for report:", req.params.reportId);
@@ -257,13 +218,13 @@ async function generateResumePdfController(req, res) {
         // ── CONTACT ROW ──────────────────────────────────────────
         const contactItems = [
             resumeData.location || null,
-            resumeData.phone    || null,
-            resumeData.email    ? `<a href="mailto:${resumeData.email}">${resumeData.email}</a>` : null,
-            links.linkedin  ? `<a href="${safe(links.linkedin)}">LinkedIn</a>`       : null,
-            links.github    ? `<a href="${safe(links.github)}">GitHub</a>`           : null,
-            links.leetcode  ? `<a href="${safe(links.leetcode)}">LeetCode</a>`       : null,
-            links.gfg       ? `<a href="${safe(links.gfg)}">GeeksforGeeks</a>`      : null,
-            links.portfolio ? `<a href="${safe(links.portfolio)}">Portfolio</a>`     : null,
+            resumeData.phone || null,
+            resumeData.email ? `<a href="mailto:${resumeData.email}">${resumeData.email}</a>` : null,
+            links.linkedin ? `<a href="${safe(links.linkedin)}">LinkedIn</a>` : null,
+            links.github ? `<a href="${safe(links.github)}">GitHub</a>` : null,
+            links.leetcode ? `<a href="${safe(links.leetcode)}">LeetCode</a>` : null,
+            links.gfg ? `<a href="${safe(links.gfg)}">GeeksforGeeks</a>` : null,
+            links.portfolio ? `<a href="${safe(links.portfolio)}">Portfolio</a>` : null,
             ...((links.extraLinks || []).map(l => l.url ? `<a href="${safe(l.url)}">${l.label || l.url}</a>` : null)),
         ].filter(Boolean);
         const contactHTML = contactItems.join('<span class="pipe"> | </span>');
@@ -272,7 +233,7 @@ async function generateResumePdfController(req, res) {
         const skillsHTML = (resumeData.skillCategories || []).length
             ? `<table class="sk"><tbody>${resumeData.skillCategories.map(c =>
                 `<tr><td class="sk-c"><b>${c.category}</b></td><td class="sk-v">${c.skills}</td></tr>`
-              ).join('')}</tbody></table>`
+            ).join('')}</tbody></table>`
             : `<p class="sk-f">${(resumeData.skills || []).join('  •  ')}</p>`;
 
         // ── SECTION HEADING ──────────────────────────────────────
@@ -311,7 +272,7 @@ ${resumeData.experience.map(e => `
 ${resumeData.projects.map(p => `
 <div class="entry">
   <div class="entry-head">
-    <span class="entry-title">${p.name}${p.link ? ` <span class="entry-link">| <a href="${safe(p.link)}">${p.link.replace(/^https?:\/\//,'')}</a></span>` : ''}</span>
+    <span class="entry-title">${p.name}${p.link ? ` <span class="entry-link">| <a href="${safe(p.link)}">${p.link.replace(/^https?:\/\//, '')}</a></span>` : ''}</span>
     ${p.date ? `<span class="entry-date">${p.date}</span>` : ''}
   </div>
   ${p.stack ? `<div class="entry-stack">${p.stack}</div>` : ''}
@@ -352,14 +313,14 @@ body{
   color:#1a1a1a;
   line-height:1.4;
 }
-a{color:#1a1a1a;text-decoration:none}
+a{color:#0071b1;text-decoration:none}
 
 /* HEADER */
 .hdr{margin-bottom:7pt;padding-bottom:6pt;border-bottom:1.5pt solid #1a1a1a;text-align:center}
 .name{font-size:19pt;font-weight:700;color:#1a1a1a;letter-spacing:0.3pt;margin-bottom:2pt}
 .role{font-size:9.8pt;color:#444;margin-bottom:4pt;font-weight:400}
 .contact{font-size:8.8pt;color:#222;line-height:1.8}
-.contact a{color:#1a1a1a}
+.contact a{color:#0071b1;font-weight:500}
 .pipe{color:#999}
 
 /* SECTION */
@@ -394,7 +355,7 @@ a{color:#1a1a1a;text-decoration:none}
 .entry-sub{font-size:9pt;color:#444;font-style:italic;margin-bottom:2.5pt}
 .entry-stack{font-size:9pt;color:#444;margin-bottom:2.5pt}
 .entry-link{font-weight:400;font-size:9pt}
-.entry-link a{color:#1a1a1a;text-decoration:underline}
+.entry-link a{color:#0071b1;text-decoration:underline;font-weight:500}
 
 /* BULLETS */
 ul{list-style:none;padding:0;margin:2pt 0 0 0}
@@ -452,8 +413,8 @@ ${addHTML}
                 (process.platform === "win32"
                     ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
                     : process.platform === "darwin"
-                    ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-                    : "/usr/bin/google-chrome"),
+                        ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+                        : "/usr/bin/google-chrome"),
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
         });
 

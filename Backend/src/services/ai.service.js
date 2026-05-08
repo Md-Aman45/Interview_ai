@@ -12,7 +12,7 @@ const interviewReportSchema = {
     type: "object",
     properties: {
 
-        matchScore: { 
+        matchScore: {
             type: "number",
             description: "Match score from 0 to 100. Example: 85, 90, 72. NEVER return a decimal like 0.9 or a single digit like 9."
         },
@@ -20,27 +20,27 @@ const interviewReportSchema = {
         scoreBreakdown: {
             type: "object",
             properties: {
-                technical:      { type: "number" },
-                projects:       { type: "number" },
+                technical: { type: "number" },
+                projects: { type: "number" },
                 problemSolving: { type: "number" },
-                communication:  { type: "number" }
+                communication: { type: "number" }
             },
             required: ["technical", "projects", "problemSolving", "communication"]
         },
 
-        averageScore:          { type: "number" },
-        hiringRecommendation:  { type: "string", enum: ["Strong Hire", "Hire", "Consider", "Reject"] },
-        confidence:            { type: "number", description: "Confidence level from 0 to 100. Example: 85, 90, 95. NEVER return a decimal like 0.95." },
-        overallAnalysis:       { type: "string" },
+        averageScore: { type: "number" },
+        hiringRecommendation: { type: "string", enum: ["Strong Hire", "Hire", "Consider", "Reject"] },
+        confidence: { type: "number", description: "Confidence level from 0 to 100. Example: 85, 90, 95. NEVER return a decimal like 0.95." },
+        overallAnalysis: { type: "string" },
 
         technicalQuestions: {
             type: "array",
             items: {
                 type: "object",
                 properties: {
-                    question:  { type: "string" },
+                    question: { type: "string" },
                     intention: { type: "string" },
-                    answer:    { type: "string" }
+                    answer: { type: "string" }
                 },
                 required: ["question", "intention", "answer"]
             }
@@ -51,9 +51,9 @@ const interviewReportSchema = {
             items: {
                 type: "object",
                 properties: {
-                    question:  { type: "string" },
+                    question: { type: "string" },
                     intention: { type: "string" },
-                    answer:    { type: "string" }
+                    answer: { type: "string" }
                 },
                 required: ["question", "intention", "answer"]
             }
@@ -64,8 +64,8 @@ const interviewReportSchema = {
             items: {
                 type: "object",
                 properties: {
-                    skill:          { type: "string" },
-                    severity:       { type: "string", enum: ["low", "medium", "high"] },
+                    skill: { type: "string" },
+                    severity: { type: "string", enum: ["low", "medium", "high"] },
                     recommendation: { type: "string" }
                 },
                 required: ["skill", "severity", "recommendation"]
@@ -77,7 +77,7 @@ const interviewReportSchema = {
             items: {
                 type: "object",
                 properties: {
-                    day:   { type: "number" },
+                    day: { type: "number" },
                     focus: { type: "string" },
                     tasks: { type: "array", items: { type: "string" } }
                 },
@@ -215,15 +215,15 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
     const resumeSchema = {
         type: "object",
         properties: {
-            name:      { type: "string" },
-            email:     { type: "string" },
-            phone:     { type: "string" },
-            location:  { type: "string" },
-            linkedin:  { type: "string" },
-            github:    { type: "string" },
+            name: { type: "string" },
+            email: { type: "string" },
+            phone: { type: "string" },
+            location: { type: "string" },
+            linkedin: { type: "string" },
+            github: { type: "string" },
             portfolio: { type: "string" },
-            leetcode:  { type: "string" },
-            gfg:       { type: "string" },
+            leetcode: { type: "string" },
+            gfg: { type: "string" },
             roleTitle: { type: "string" },
 
             summary: {
@@ -239,7 +239,7 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                     type: "object",
                     properties: {
                         category: { type: "string" },
-                        skills:   { type: "string", description: "Comma separated skills for this category" }
+                        skills: { type: "string", description: "Comma separated skills for this category" }
                     },
                     required: ["category", "skills"]
                 }
@@ -250,10 +250,10 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                 items: {
                     type: "object",
                     properties: {
-                        name:   { type: "string" },
-                        date:   { type: "string" },
+                        name: { type: "string" },
+                        date: { type: "string" },
                         issuer: { type: "string" },
-                        link:   { type: "string" }
+                        link: { type: "string" }
                     },
                     required: ["name"]
                 }
@@ -264,11 +264,11 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                 items: {
                     type: "object",
                     properties: {
-                        role:     { type: "string" },
-                        company:  { type: "string" },
+                        role: { type: "string" },
+                        company: { type: "string" },
                         duration: { type: "string" },
-                        stack:    { type: "string" },
-                        bullets:  {
+                        stack: { type: "string" },
+                        bullets: {
                             type: "array",
                             items: { type: "string" },
                             description: "3-5 achievement bullets. Start each with action verb. Be specific and measurable."
@@ -283,10 +283,10 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                 items: {
                     type: "object",
                     properties: {
-                        name:    { type: "string", description: "Project name with role e.g. 'Interview AI — GenAI Platform | Full Stack Developer'" },
-                        link:    { type: "string", description: "GitHub or live URL if present in resume" },
-                        date:    { type: "string" },
-                        stack:   { type: "string" },
+                        name: { type: "string", description: "Project name with role e.g. 'Interview AI — GenAI Platform | Full Stack Developer'" },
+                        link: { type: "string", description: "GitHub or live URL if present in resume" },
+                        date: { type: "string" },
+                        stack: { type: "string" },
                         bullets: {
                             type: "array",
                             items: { type: "string" },
@@ -304,8 +304,8 @@ async function generateResumeContent({ resume, jobDescription, selfDescription }
                     properties: {
                         degree: { type: "string" },
                         school: { type: "string" },
-                        year:   { type: "string" },
-                        grade:  { type: "string" }
+                        year: { type: "string" },
+                        grade: { type: "string" }
                     },
                     required: ["degree", "school", "year"]
                 }
@@ -396,8 +396,6 @@ If not found in resume, leave as empty string "".
             try {
                 result = JSON.parse(response.text);
             } catch (parseError) {
-                // console.log("❌ Parse failed:", response.text.substring(0, 300));
-                // console.log("❌ Parse failed, response length:", response.text.length);
                 console.log("❌ Full raw response:", response.text);
                 throw new Error("AI returned incomplete response. Please try again.");
             }
